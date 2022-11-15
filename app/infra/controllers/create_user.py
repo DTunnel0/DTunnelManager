@@ -11,12 +11,18 @@ class CreateUserController:
         self.__use_case = use_case
         self.__presenter = presenter
 
+    def __parse_date(self, date: str) -> datetime.datetime:
+        try:
+            return datetime.datetime.fromisoformat(date)
+        except AttributeError:
+            return datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%f')
+
     def handle(self, data: dict) -> Any:
         user_input_dto = UserInputDTO(
             username=data['username'],
             password=data['password'],
             connection_limit=data['connection_limit'],
-            expiration_date=datetime.datetime.fromisoformat(data['expiration_date']),
+            expiration_date=self.__parse_date(data['expiration_date']),
         )
         self.__use_case.execute(user_input_dto)
         return self.__presenter.present(
