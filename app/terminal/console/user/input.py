@@ -5,8 +5,6 @@ import typing as t
 
 from console.colors import color_name
 
-T = t.TypeVar('T')
-
 
 class Username:
     __size = 8

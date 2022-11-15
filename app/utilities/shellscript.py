@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 
 def clear_screen() -> None:

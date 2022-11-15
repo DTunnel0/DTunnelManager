@@ -1,7 +1,7 @@
 import json
 import os
 
-from app.utilities.v2ray_config_template import config as v2ray_config_template
+from .template import config as v2ray_config_template
 
 V2RAY_CONFIG_PATH = '/etc/v2ray/config.json'
 
