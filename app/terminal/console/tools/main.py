@@ -17,9 +17,9 @@ from console.colors import color_name
 
 class GLUpdate:
     def __init__(self):
-        self.repository_url = 'https://github.com/DuTra01/DTunnelManager.git'
+        self.repository_url = 'https://github.com/DTunnel0/DTunnelManager.git'
         self.version_url = (
-            'https://raw.githubusercontent.com/DuTra01/DTunnelManager/master/app/version.py'
+            'https://raw.githubusercontent.com/DTunnel0/DTunnelManager/master/app/version.py'
         )
 
     def check_update(self) -> bool:

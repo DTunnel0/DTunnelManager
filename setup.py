@@ -16,7 +16,7 @@ VERSION = __version__
 DESCRIPTION = open('README.md').read()
 AUTHOR = __author__
 AUTHOR_EMAIL = __email__
-URL = 'https://github.com/DuTra01/DTunnelManager.git'
+URL = 'https://github.com/DTunnel0/DTunnelManager.git'
 LICENSE = 'MIT'
 
 PACKAGE_DATA = {'scripts': ['*']}

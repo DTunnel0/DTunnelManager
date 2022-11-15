@@ -10,7 +10,7 @@ sudo apt-get update && sudo apt-get install git -y
 
 * Instalando script
 ```
-git clone https://github.com/DuTra01/DTunnelManager.git
+git clone https://github.com/DTunnel0/DTunnelManager.git
 cd DTunnelManager
 pip3 install -r requirements.txt
 ```
@@ -29,24 +29,24 @@ sudo apt-get update && sudo apt-get install git python3 python3-pip -y
 
 * Instalando script
 ```
-pip3 install git+https://github.com/DuTra01/DTunnelManager.git
+pip3 install git+https://github.com/DTunnel0/DTunnelManager.git
 ```
 #### Ou
 ```
-git clone https://github.com/DuTra01/DTunnelManager.git
+git clone https://github.com/DTunnel0/DTunnelManager.git
 cd DTunnelManager
 python3 setup.py install
 ```
 
 ## Atualize o script
 ```
-pip3 install --upgrade git+https://github.com/DuTra01/DTunnelManager.git
+pip3 install --upgrade git+https://github.com/DTunnel0/DTunnelManager.git
 ```
 #### Ou
 ```
 cd ~/
 rm -rf DTunnelManager
-git clone git+https://github.com/DuTra01/DTunnelManager.git
+git clone git+https://github.com/DTunnel0/DTunnelManager.git
 cd DTunnelManager
 python3 setup.py install
 ```
