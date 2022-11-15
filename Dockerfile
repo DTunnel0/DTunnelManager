@@ -1,0 +1,12 @@
+FROM python:3.8
+
+WORKDIR /DTunnelManager
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY ./ ./
+
+# CMD ["python3", "-m", "app"]
+# listen
+CMD ["python3", "-m", "http.server", "80"]

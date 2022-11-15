@@ -1,0 +1,5 @@
+sqlalchemy
+pytest
+distro
+pytelegrambotapi==4.6.0
+python-daemon
