@@ -39,7 +39,14 @@ class CreateUserCallback(UserCallback):
     def execute(self) -> None:
         try:
             print(create_menu_bg('CRIAR USUARIO', set_pars=False))
-            output = self._create_user_controller.handle(self._data.to_dict())
+            output = self._create_user_controller.handle(
+                {
+                    'username': self._data.username,
+                    'password': self._data.password,
+                    'connection_limit': self._data.connection_limit,
+                    'expiration_date': self._data.expiration_date.isoformat(),
+                }
+            )
             user_console = UserConsole(
                 id=self._get_user_by_username_controller.handle(self._data.username)['id'],
                 username=self._data.username,

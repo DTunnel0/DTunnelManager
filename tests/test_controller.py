@@ -15,7 +15,7 @@ def test_create_user_controller():
             'username': 'test',
             'password': 'test',
             'connection_limit': 1,
-            'expiration_date': '20/10/2022',
+            'expiration_date': '2022-01-01',
             'v2ray_uuid': 'test',
         }
     )

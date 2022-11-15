@@ -27,6 +27,12 @@ class UserRepositoryImplInMemory(UserRepositoryInterface):
         except StopIteration:
             raise Exception(f'User {id} not found')
 
+    def get_by_uuid(self, uuid: str) -> User:
+        try:
+            return next(filter(lambda u: u.v2ray_uuid == uuid, self.__users))
+        except StopIteration:
+            raise Exception(f'User {uuid} not found')
+
     def get_by_username(self, username: str) -> User:
         try:
             return next(filter(lambda u: u.username == username, self.__users))

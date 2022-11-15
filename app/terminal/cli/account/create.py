@@ -55,13 +55,14 @@ class AccountCreate:
 
     def run(self, args: Any) -> None:
         try:
+            expiration_date = self.__parse_expiration_date(args.expiration_date)
             print(
                 self.create_account_controller.handle(
                     {
                         'username': args.username,
                         'password': args.password,
                         'connection_limit': args.limit_connections,
-                        'expiration_date': self.__parse_expiration_date(args.expiration_date),
+                        'expiration_date': expiration_date.isoformat(),
                     }
                 )
             )

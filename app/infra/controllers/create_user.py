@@ -1,3 +1,4 @@
+import datetime
 from typing import Any
 
 from app.domain.use_cases.user.create_user import CreateUserUseCase, UserInputDTO
@@ -11,14 +12,19 @@ class CreateUserController:
         self.__presenter = presenter
 
     def handle(self, data: dict) -> Any:
-        input = UserInputDTO(**data)
-        self.__use_case.execute(input)
+        user_input_dto = UserInputDTO(
+            username=data['username'],
+            password=data['password'],
+            connection_limit=data['connection_limit'],
+            expiration_date=datetime.datetime.fromisoformat(data['expiration_date']),
+        )
+        self.__use_case.execute(user_input_dto)
         return self.__presenter.present(
             UserConsoleModel(
-                username=input.username,
-                password=input.password,
-                connection_limit=input.connection_limit,
-                expiration_date=input.expiration_date.strftime('%d/%m/%Y'),
-                v2ray_uuid=input.v2ray_uuid,
+                username=user_input_dto.username,
+                password=user_input_dto.password,
+                connection_limit=user_input_dto.connection_limit,
+                expiration_date=user_input_dto.expiration_date.strftime('%d/%m/%Y'),
+                v2ray_uuid=user_input_dto.v2ray_uuid,
             )
         )

@@ -1,24 +1,30 @@
 import datetime
 import uuid
 
+from unittest import mock
+
 from app.data.repositories.user import UserRepositoryImplInMemory
 from app.domain.use_cases.user.create_user import CreateUserUseCase, UserInputDTO
 from app.domain.use_cases.user.get_user import GetUserUseCase
 from app.domain.use_cases.user.update_user import UpdateUserUseCase, UserUpdateInputDTO
 
 
+gateway = mock.Mock()
+gateway.create = mock.Mock(return_value=1000)
+gateway.update = mock.Mock()
+
+
 def test_deve_atualizar_um_usuario_de_30_dias_para_60_dias():
     repository = UserRepositoryImplInMemory()
-    create_user_use_case = CreateUserUseCase(repository)
+    create_user_use_case = CreateUserUseCase(repository, gateway)
     get_user_use_case = GetUserUseCase(repository)
-    update_user_use_case = UpdateUserUseCase(repository)
+    update_user_use_case = UpdateUserUseCase(repository, gateway)
 
     user_id = 1000
     days = 30
 
     create_user_use_case.execute(
         UserInputDTO(
-            id=user_id,
             username='test',
             password='test',
             v2ray_uuid=str(uuid.uuid4()),
@@ -40,15 +46,14 @@ def test_deve_atualizar_um_usuario_de_30_dias_para_60_dias():
 
 def test_dev_atualizar_um_usuario():
     repository = UserRepositoryImplInMemory()
-    create_user_use_case = CreateUserUseCase(repository)
+    create_user_use_case = CreateUserUseCase(repository, gateway)
     get_user_use_case = GetUserUseCase(repository)
-    update_user_use_case = UpdateUserUseCase(repository)
+    update_user_use_case = UpdateUserUseCase(repository, gateway)
 
     user_id = 1000
     days = 30
     create_user_use_case.execute(
         UserInputDTO(
-            id=user_id,
             username='test',
             password='test',
             v2ray_uuid=str(uuid.uuid4()),
