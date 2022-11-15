@@ -15,7 +15,7 @@ class CreateUserController:
         try:
             return datetime.datetime.fromisoformat(date)
         except AttributeError:
-            return datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%f')
+            return datetime.datetime.strptime(date[:10], '%Y-%m-%d')
 
     def handle(self, data: dict) -> Any:
         user_input_dto = UserInputDTO(
