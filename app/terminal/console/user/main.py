@@ -7,6 +7,7 @@ from app.infra.controllers.delete_user import DeleteUserController
 from app.infra.controllers.get_all_users import GetAllUsersController
 from app.infra.controllers.get_user import GetUserByUsernameController
 from app.infra.controllers.update_user import UpdateUserController
+from app.terminal.console.common import Callback
 from app.terminal.console.user.console import (
     UserConsole,
     UserMenuConsoleConnectionLimit,
@@ -14,27 +15,26 @@ from app.terminal.console.user.console import (
     UserMenuConsoleExpirationDate,
     UserMenuConsolePassword,
 )
-from app.terminal.console.user.input import ConnectionLimit, ExpirationDate, Password, UserInputData
+from app.terminal.console.user.input import (
+    ConnectionLimit,
+    ExpirationDate,
+    Password,
+    RandomUserInputData,
+    UserInputData,
+)
 from console.colors import color_name
 from console.console import Console, FuncItem
 from console.formatter import create_menu_bg
 
 
-class Callback:
-    def execute(self, *args, **kwargs) -> None:
-        raise NotImplementedError
-
+class UserCallback(Callback):
     def __call__(self, *args, **kwargs) -> None:
         Console.clear_screen()
-        try:
-            self.execute(*args, **kwargs)
-            Console.pause()
-        except Exception as e:
-            print(color_name.RED + str(e) + color_name.RESET)
-            Console.pause()
+        super().__call__(*args, **kwargs)
+        Console.pause()
 
 
-class CreateUserCallback(Callback):
+class CreateUserCallback(UserCallback):
     def __init__(
         self,
         _create_user_controller: CreateUserController,
@@ -48,23 +48,25 @@ class CreateUserCallback(Callback):
         self._data = input_data
 
     def execute(self) -> None:
-        print(create_menu_bg('CRIAR USUARIO', set_pars=False))
-        output = self._create_user_controller.handle(self._data.to_dict())
-        user_console = UserConsole(
-            id=self._get_user_by_username_controller.handle(self._data.username)['id'],
-            username=self._data.username,
-            password=self._data.password,
-            connection_limit=self._data.connection_limit,
-            expiration_date=self._data.expiration_date,
-            v2ray_uuid=self._data.v2ray_uuid,
-        )
-        self._users.append(user_console)
-        Console.clear_screen()
+        try:
+            print(create_menu_bg('CRIAR USUARIO', set_pars=False))
+            output = self._create_user_controller.handle(self._data.to_dict())
+            user_console = UserConsole(
+                id=self._get_user_by_username_controller.handle(self._data.username)['id'],
+                username=self._data.username,
+                password=self._data.password,
+                connection_limit=self._data.connection_limit,
+                expiration_date=self._data.expiration_date,
+                v2ray_uuid=self._data.v2ray_uuid,
+            )
+            self._users.append(user_console)
+            Console.clear_screen()
+            print(output)
+        except KeyboardInterrupt:
+            return
 
-        print(output)
 
-
-class DeleteUserCallback(Callback):
+class DeleteUserCallback(UserCallback):
     def __init__(
         self,
         delete_user_controller: DeleteUserController,
@@ -79,7 +81,7 @@ class DeleteUserCallback(Callback):
         print(color_name.GREEN + 'Usuario deletado com sucesso.' + color_name.RESET)
 
 
-class PasswordChangeCallback(Callback):
+class PasswordChangeCallback(UserCallback):
     def __init__(
         self,
         update_user_controller: UpdateUserController,
@@ -105,7 +107,7 @@ class PasswordChangeCallback(Callback):
         print(color_name.GREEN + 'Senha alterada com sucesso.' + color_name.RESET)
 
 
-class ConnectionLimitChangeCallback(Callback):
+class ConnectionLimitChangeCallback(UserCallback):
     def __init__(
         self,
         update_user_controller: UpdateUserController,
@@ -135,7 +137,7 @@ class ConnectionLimitChangeCallback(Callback):
         print(color_name.GREEN + 'Limite de conexoes alterado com sucesso.' + color_name.RESET)
 
 
-class ExpirationDateChangeCallback(Callback):
+class ExpirationDateChangeCallback(UserCallback):
     def __init__(
         self,
         update_user_controller: UpdateUserController,
@@ -158,8 +160,8 @@ class ExpirationDateChangeCallback(Callback):
         self._update_user_controller.handle(
             {
                 'id': user.id,
-                'username': input.value,
-                'expiration_date': user.expiration_date,
+                'username': user.username,
+                'expiration_date': input.value,
             }
         )
         user.expiration_date = input.value
@@ -218,6 +220,7 @@ class MonitorCallback(Callback):
         return line
 
     def execute(self) -> None:
+        Console.clear_screen()
         while True:
             print(create_menu_bg('MONITORAMENTO', set_pars=False))
             print(self.__build_header())
@@ -265,23 +268,23 @@ class MainUserConsole:
         self.console.append_item(
             FuncItem(
                 'CRIAR USUÁRIO',
-                CreateUserCallback(
+                lambda: CreateUserCallback(
                     self._create_user_controller,
                     self._get_user_by_username_controller,
                     self.users,
                     UserInputData(),
-                ),
+                )(),
             ),
         )
         self.console.append_item(
             FuncItem(
                 'GERAR USUÁRIO',
-                CreateUserCallback(
+                lambda: CreateUserCallback(
                     self._create_user_controller,
                     self._get_user_by_username_controller,
                     self.users,
-                    UserInputData.random(),
-                ),
+                    RandomUserInputData(),
+                )(),
             ),
         )
         self.console.append_item(

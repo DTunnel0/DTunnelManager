@@ -1,8 +1,9 @@
-import typing as t
 import datetime
+import typing as t
+from app.terminal.console.common import Callback
 
-from console import Console, FuncItem, Formatter
-from console.colors import color_name
+from app.utilities.logger import logger
+from console import Console, Formatter, FuncItem
 
 
 class UserConsole:
@@ -33,17 +34,24 @@ class UserConsole:
             expiration_date=data['expiration_date'],
         )
 
+    @staticmethod
+    def collection(data: t.List[dict]) -> t.List['UserConsole']:
+        return list(map(UserConsole.create, data))
+
 
 class UserMenuConsole:
     def __init__(
         self,
         users: t.List[UserConsole],
-        on_select: t.Callable[[UserConsole], None],
+        on_select: t.Union[Callback, None] = None,
         title: str = 'SELECIONE UM USUÁRIO',
     ):
         self._users = users
-        self._on_select = on_select
+        self._callback_on_select = on_select
         self._console = Console(title)
+
+    def set_callback(self, on_select: Callback) -> None:
+        self._callback_on_select = on_select
 
     @property
     def selected_exit(self) -> bool:
@@ -53,14 +61,15 @@ class UserMenuConsole:
         return user.username + ' ' * (self.width() - len(user.username))
 
     def __on_select(self, user: UserConsole) -> None:
-        self._on_select(user)
+        if self._callback_on_select:
+            self._callback_on_select(user)
         self.create_items()
 
     def create_items(self) -> None:
         self._console.items.clear()
 
         if not self._users:
-            print(color_name.RED + 'Nenhum usuario foi encontrado.' + color_name.RESET)
+            logger.error('Nenhum usuario foi encontrado.')
             self._console.pause()
             self._console.exit()
             return
@@ -93,7 +102,7 @@ class UserMenuConsoleDeleteUser(UserMenuConsole):
     def __init__(
         self,
         users: t.List[UserConsole],
-        on_select: t.Callable[[UserConsole], None],
+        on_select: t.Union[Callback, None] = None,
     ) -> None:
         super().__init__(users, on_select, 'EXCLUIR USUÁRIO')
 
@@ -102,7 +111,7 @@ class UserMenuConsolePassword(UserMenuConsole):
     def __init__(
         self,
         users: t.List[UserConsole],
-        on_select: t.Callable[[UserConsole], None],
+        on_select: t.Union[Callback, None] = None,
     ) -> None:
         super().__init__(users, on_select, 'ALTERAR SENHA')
         self._console.formatter = Formatter(1)
@@ -120,7 +129,7 @@ class UserMenuConsoleConnectionLimit(UserMenuConsole):
     def __init__(
         self,
         users: t.List[UserConsole],
-        on_select: t.Callable[[UserConsole], None],
+        on_select: t.Union[Callback, None] = None,
     ) -> None:
         super().__init__(users, on_select, 'ALTERAR LIMITE DE CONEXÕES')
         self._console.formatter = Formatter(1)
@@ -138,7 +147,7 @@ class UserMenuConsoleExpirationDate(UserMenuConsole):
     def __init__(
         self,
         users: t.List[UserConsole],
-        on_select: t.Callable[[UserConsole], None],
+        on_select: t.Union[Callback, None] = None,
     ):
         super().__init__(users, on_select, 'ALTERAR DATA DE EXPIRAÇÃO')
         self._console.formatter = Formatter(1)

@@ -5,6 +5,8 @@ import typing as t
 
 from console.colors import color_name
 
+T = t.TypeVar('T')
+
 
 class Username:
     __size = 8
@@ -176,9 +178,10 @@ class UserInputData:
             'v2ray_uuid': self.v2ray_uuid,
         }
 
-    @staticmethod
-    def random(size: int = 8) -> 'UserInputData':
-        return UserInputData(
+
+class RandomUserInputData(UserInputData):
+    def __init__(self, size: int = 8) -> None:
+        super().__init__(
             username=''.join(random.choice(string.ascii_letters) for _ in range(size)),
             password=''.join(random.choice(string.ascii_letters) for _ in range(size)),
             connection_limit=1,

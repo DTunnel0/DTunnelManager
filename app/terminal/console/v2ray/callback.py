@@ -1,7 +1,9 @@
 import typing as t
 
 from app.infra.controllers.update_user import UpdateUserController
-from app.terminal.console.utils import Callback, UserConsole, UserMenuConsole
+from app.terminal.console.common import Callback
+from app.terminal.console.user.console import UserConsole, UserMenuConsole
+
 from app.terminal.console.v2ray.utils.manager import V2RayManager
 from app.utilities.logger import logger
 from app.utilities.utils import get_ip_address
