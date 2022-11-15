@@ -6,11 +6,11 @@ from sqlalchemy.orm import sessionmaker
 from .db_base import Base
 
 DATABASE_NAME = 'db.sqlite3'
-# DATABASE_PATH = (
-#     '/etc/DTunnelManager/' if os.geteuid() == 0 else os.path.expanduser('~/.config/DTunnelManager/')
-# )
+DATABASE_PATH = (
+    '/etc/DTunnelManager/' if os.geteuid() == 0 else os.path.expanduser('~/.config/DTunnelManager/')
+)
 
-DATABASE_PATH = './'
+# DATABASE_PATH = './'
 DATABASE_URI = 'sqlite:///' + os.path.join(DATABASE_PATH, DATABASE_NAME)
 
 if not os.path.exists(DATABASE_PATH):
