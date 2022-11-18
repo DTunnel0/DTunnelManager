@@ -112,7 +112,7 @@ class SocksManager:
         )
         if self.ssl:
             cmd += ' --cert {cert_path}'.format(cert_path=CERT_PATH)
-        return cmd
+        return cmd + ' --{mode}'.format(mode=self.mode)
 
     @property
     def screen(self) -> Screen:
