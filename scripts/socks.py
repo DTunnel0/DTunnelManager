@@ -98,35 +98,6 @@ class ConnectionTypeFactory:
         return None
 
 
-class HttpParser:
-    def __init__(self) -> None:
-        self.method = None
-        self.body = None
-        self.url = None
-        self.headers = {}
-
-    def parse(self, data: bytes) -> None:
-        lines = data.split(b'\r\n')
-
-        self.method, self.url, self.version = lines[0].split()
-        self.url = urlparse(self.url)
-
-        self.headers.update(
-            {k: v.strip() for k, v in [line.split(b':', 1) for line in lines[1:] if b':' in line]}
-        )
-
-        self.body = (
-            b'\r\n'.join(lines[:-1])
-            if not self.headers.get(b'Content-Length')
-            else b'\r\n'.join(lines[-1 : -1 * int(self.headers[b'Content-Length'])])  # noqa
-        )
-
-    def build(self) -> bytes:
-        base = b'%s %s %s\r\n' % (self.method, self.url.path, self.version)
-        headers = '\r\n'.join('%s: %s' % (k, v) for k, v in self.headers.items()) + '\r\n' * 2
-        return base + headers.encode('utf-8') + self.body
-
-
 class Connection:
     def __init__(self, conn: Union[socket.socket, ssl.SSLSocket], addr: Tuple[str, int]):
         self.__conn = conn
@@ -235,12 +206,8 @@ class Server(Connection):
 class Proxy(threading.Thread):
     def __init__(self, client: Client, server: Optional[Server] = None) -> None:
         super().__init__()
-
         self.client = client
         self.server = server
-
-        self.http_parser = HttpParser()
-
         self.__running = False
 
     @property
@@ -258,6 +225,7 @@ class Proxy(threading.Thread):
             self.server.queue(data)
             return
 
+        print('Requisição recebida: %s' % data)
         connection_type = ConnectionTypeFactory.get_type(data)
         if connection_type:
             self.server = Server.of(connection_type.address)
@@ -268,8 +236,7 @@ class Proxy(threading.Thread):
             )
             return
 
-        self.http_parser.parse(data)
-        logger.info('%s -> Solicitação: %s' % (self.client, self.http_parser.body))
+        logger.info('%s -> Solicitação: %s' % (self.client, data))
 
         self.client.queue(DEFAULT_RESPONSE)
         # self.client.flush()
