@@ -96,23 +96,27 @@ class ChangeOpenVPNPort(Callback):
 
 
 class CreateOVPNFile(Callback):
-    def __init__(self, manager: OpenVPNManager) -> None:
+    def __init__(self, manager: OpenVPNManager, callback: t.Callable) -> None:
         self.manager = manager
+        self.callback = callback
 
     def execute(self) -> None:
         self.manager.create_ovpn_client()
         logger.info('Arquivo OVPN criado com sucesso!')
+        self.callback()
         Console.pause()
 
 
 class DeleteOVPNFile(Callback):
-    def __init__(self, manager: OpenVPNManager) -> None:
+    def __init__(self, manager: OpenVPNManager, callback: t.Callable) -> None:
         self.manager = manager
+        self.callback = callback
 
     def execute(self) -> None:
         self.manager.remove_ovpn_client()
         logger.info('Arquivo OVPN deletado com sucesso!')
         Console.pause()
+        self.callback()
 
 
 class MainOpenVPNConsole:
@@ -166,14 +170,16 @@ class MainOpenVPNConsole:
             self.console.append_item(
                 FuncItem(
                     'REMOVER ARQUIVO OVPN',
-                    func=DeleteOVPNFile(self.manager),
+                    func=DeleteOVPNFile(self.manager, self.start),
+                    shuld_exit=True,
                 )
             )
         else:
             self.console.append_item(
                 FuncItem(
                     'CRIAR ARQUIVO OVPN',
-                    func=CreateOVPNFile(self.manager),
+                    func=CreateOVPNFile(self.manager, self.start),
+                    shuld_exit=True,
                 )
             )
 
