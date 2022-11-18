@@ -1,15 +1,15 @@
-import argparse
-import logging
-import os
-import resource
-import select
 import socket
 import ssl
+import select
 import threading
-import typing as t
+import os
+import argparse
+import logging
+import resource
+
+from urllib.parse import urlparse
+from typing import List, Tuple, Union, Optional
 from enum import Enum
-from typing import List, Optional, Tuple, Union
-from urllib.parse import ParseResultBytes, urlparse
 
 __author__ = 'Glemison C. Dutra'
 __version__ = '1.0.3'
@@ -40,8 +40,8 @@ class RemoteTypes(Enum):
 
 class ParserType:
     def __init__(self) -> None:
-        self.type: t.Union[RemoteTypes, None] = None
-        self.address: t.Union[Tuple[str, int], None] = None
+        self.type = None
+        self.address = None
 
     def parse(self, data: bytes) -> None:
         if data.startswith(b'\x0068'):
@@ -60,18 +60,16 @@ class ParserType:
 
 class HttpParser:
     def __init__(self) -> None:
-        self.method: t.Union[bytes, None] = None
-        self.body: t.Union[bytes, None] = None
-        self.url: t.Union[ParseResultBytes, None] = None
-        self.headers: t.Dict[t.Any, bytes] = {}
+        self.method = None
+        self.body = None
+        self.url = None
+        self.headers = {}
 
     def parse(self, data: bytes) -> None:
         lines = data.split(b'\r\n')
 
-        m, u, v = lines[0].split()  # type: ignore
-        self.url = urlparse(u)
-        self.method = m
-        self.version = v
+        self.method, self.url, self.version = lines[0].split()
+        self.url = urlparse(self.url)
 
         self.headers.update(
             {k: v.strip() for k, v in [line.split(b':', 1) for line in lines[1:] if b':' in line]}
@@ -80,13 +78,13 @@ class HttpParser:
         self.body = (
             b'\r\n'.join(lines[:-1])
             if not self.headers.get(b'Content-Length')
-            else b'\r\n'.join(lines[-1 : -1 * int(self.headers[b'Content-Length'])])  # noqa
+            else b'\r\n'.join(lines[-1 : -1 * int(self.headers[b'Content-Length'])])
         )
 
     def build(self) -> bytes:
         base = b'%s %s %s\r\n' % (self.method, self.url.path, self.version)
         headers = '\r\n'.join('%s: %s' % (k, v) for k, v in self.headers.items()) + '\r\n' * 2
-        return base + headers.encode('utf-8') + self.body  # type: ignore
+        return base + headers.encode('utf-8') + self.body
 
 
 class Connection:
@@ -222,16 +220,26 @@ class Proxy(threading.Thread):
             return
 
         self.parser_type.parse(data)
-        host, port = None, None if self.parser_type.type is None else self.parser_type.address
+        host, port = (None, None) if self.parser_type.type is None else self.parser_type.address
 
-        if host and port:
-            self.server = Server.of((host, port))
+        if self.parser_type.type is None:
+            self.http_parser.parse(data)
+
+            if self.http_parser.method == b'CONNECT':
+                host, port = tuple(map(bytes.decode, self.http_parser.url.path.split(b':')))
+            else:
+                host, port = REMOTES_ADDRESS['ssh']
+
+        if host is not None and port is not None:
+            self.server = Server.of((host, int(port)))
             self.server.connect()
 
-        if self.server and not self.server.closed:
-            self.server.queue(data)
-        else:
+        if self.http_parser.method == b'CONNECT' or self.parser_type.type is None:
             self.client.queue(DEFAULT_RESPONSE)
+        elif self.parser_type.type is not None and self.server and not self.server.closed:
+            self.server.queue(data)
+        elif self.server and not self.server.closed:
+            self.server.queue(self.http_parser.build())
 
         if self.parser_type.type:
             logger.info(
@@ -239,13 +247,10 @@ class Proxy(threading.Thread):
                 % (self.client, self.parser_type.type.value.upper(), host, port)
             )
         else:
-            self.http_parser.parse(data)
-            logger.info('%s -> Solicitação: %r' % (self.client, self.http_parser.body))
+            logger.info('%s -> Solicitação: %s' % (self.client, self.http_parser.body))
 
-    def _get_waitable_lists(
-        self,
-    ) -> Tuple[List[socket.socket], List[socket.socket], List[socket.socket]]:
-        r, w, e = [self.client.conn], [], []  # type: ignore
+    def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
+        r, w, e = [self.client.conn], [], []
 
         if self.server and not self.server.closed:
             r.append(self.server.conn)
@@ -269,14 +274,14 @@ class Proxy(threading.Thread):
 
     def _process_rlist(self, rlist: List[socket.socket]) -> None:
         if self.client.conn in rlist:
-            data = self.client.read(8192)
+            data = self.client.read()
             self.running = data is not None
             if data and self.running:
                 self._process_request(data)
                 logger.debug('%s -> recebido %s bytes' % (self.client, len(data)))
 
         if self.server and not self.server.closed and self.server.conn in rlist:
-            data = self.server.read(8192)
+            data = self.server.read()
             self.running = data is not None
             if data and self.running:
                 self.client.queue(data)
