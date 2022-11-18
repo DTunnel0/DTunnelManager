@@ -228,13 +228,21 @@ class Proxy(threading.Thread):
         connection_type = ConnectionTypeFactory.get_type(data)
         if connection_type:
             logger.info(
-                '%s -> Modo %s - %s:%s', self.client, connection_type.name, *connection_type.address
+                '%s -> Modo %s - %s:%s',
+                self.client,
+                connection_type.name,
+                *connection_type.address,
             )
             self.server = Server.of(connection_type.address)
             self.server.connect()
+            self.server.queue(data)
             return
 
-        logger.info('%s -> Solicitação: %s' % (self.client, data))
+        logger.info(
+            '%s -> Solicitação: %s',
+            self.client,
+            data,
+        )
         self.client.queue(DEFAULT_RESPONSE)
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
