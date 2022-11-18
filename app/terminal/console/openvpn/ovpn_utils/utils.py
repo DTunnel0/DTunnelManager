@@ -5,6 +5,7 @@ from .install import (
     EASYRSA_PKI_CA,
     EASYRSA_PKI_CERT_PATH,
     EASYRSA_PKI_KEY_PATH,
+    EASYRSA_PKI_REQS,
     CLIENT_COMMON_CONFIG,
     EASYRSA_TLS_CRYPT,
     ROOT_PATH,
@@ -82,11 +83,7 @@ def remove_ovpn_client(username: str) -> None:
 
     os.remove(EASYRSA_PKI_CERT_PATH + username + '.crt')
     os.remove(EASYRSA_PKI_KEY_PATH + username + '.key')
-    os.remove(EASYRSA_PKI_KEY_PATH + username + '.csr')
-
-    os.remove(EASYRSA_PKI_KEY_PATH + 'private/' + username + '.key')
-    os.remove(EASYRSA_PKI_KEY_PATH + 'reqs/' + username + '.req')
-    os.remove(EASYRSA_PKI_KEY_PATH + 'issued/' + username + '.crt')
+    os.remove(EASYRSA_PKI_REQS + username + '.req')
 
 
 class OpenVPNUtils:

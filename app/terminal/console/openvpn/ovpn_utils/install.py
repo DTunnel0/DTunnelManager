@@ -17,6 +17,7 @@ EASYRSA_PKI_CA = os.path.join(EASYRSA_PKI_PATH, 'ca.crt')
 EASYRSA_TLS_CRYPT = os.path.join(OPENVPN_PATH, 'tls-crypt.key')
 
 EASYRSA_PKI_CERT_PATH = os.path.join(EASYRSA_PKI_PATH, 'issued/')
+EASYRSA_PKI_REQS = os.path.join(EASYRSA_PKI_PATH, 'reqs/')
 EASYRSA_PKI_KEY_PATH = os.path.join(EASYRSA_PKI_PATH, 'private/')
 
 CLIENT_COMMON_CONFIG = os.path.join(OPENVPN_PATH, 'client-common.txt')
