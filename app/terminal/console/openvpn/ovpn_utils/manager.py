@@ -1,47 +1,44 @@
 import os
 
 from .install import openvpn_install, uninstall_openvpn, OPENVPN_PATH
-from .utils import OpenVPNUtils
+from .utils import OpenVPNService, OpenVPNUtils
 
 
 class OpenVPNManager:
-    ovpn_utils = OpenVPNUtils()
+    def __init__(self, utils: OpenVPNUtils, service: OpenVPNService) -> None:
+        self.utils = utils
+        self.service = service
 
-    @staticmethod
-    def openvpn_install() -> bool:
+    def install(self) -> bool:
         try:
             openvpn_install()
-            return OpenVPNManager.ovpn_utils.openvpn_is_installed()
+            return self.utils.is_installed
         except (Exception, KeyboardInterrupt):
             return False
 
-    @staticmethod
-    def openvpn_uninstall() -> bool:
+    def uninstall(self) -> bool:
         uninstall_openvpn()
+        return not self.utils.is_installed
 
-        return not OpenVPNManager.ovpn_utils.openvpn_is_installed()
+    def create_ovpn_client(self, username: str = 'dtunnel') -> None:
+        self.utils.create_ovpn(username)
 
-    @staticmethod
-    def create_ovpn_client(username: str) -> None:
-        OpenVPNManager.ovpn_utils.create_ovpn_client(username)
+    def remove_ovpn_client(self, username: str = 'dtunnel') -> None:
+        self.utils.remove_ovpn(username)
 
-    @staticmethod
-    def openvpn_start() -> bool:
-        os.system('systemctl start openvpn@server.service')
-        return OpenVPNManager.ovpn_utils.openvpn_is_running()
+    def start(self) -> bool:
+        self.service.start()
+        return self.utils.is_running
 
-    @staticmethod
-    def openvpn_stop() -> bool:
-        os.system('systemctl stop openvpn@server.service')
-        return not OpenVPNManager.ovpn_utils.openvpn_is_running()
+    def stop(self) -> bool:
+        self.service.stop()
+        return not self.utils.is_running
 
-    @staticmethod
-    def openvpn_restart() -> bool:
-        os.system('systemctl restart openvpn@server.service')
-        return OpenVPNManager.ovpn_utils.openvpn_is_running()
+    def restart(self) -> bool:
+        self.service.restart()
+        return self.utils.is_running
 
-    @staticmethod
-    def change_openvpn_port(port: int) -> None:
+    def change_openvpn_port(self, port: int) -> None:
         with open(os.path.join(OPENVPN_PATH, 'server.conf'), 'r') as f:
             lines = f.readlines()
 
@@ -53,8 +50,7 @@ class OpenVPNManager:
 
                 f.write(line)
 
-    @staticmethod
-    def get_current_port() -> int:
+    def get_current_port(self) -> int:
         with open(os.path.join(OPENVPN_PATH, 'server.conf'), 'r') as f:
             lines = f.readlines()
 

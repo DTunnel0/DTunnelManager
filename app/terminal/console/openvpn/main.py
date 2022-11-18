@@ -1,149 +1,184 @@
 import typing as t
 
+from app.terminal.console.openvpn.ovpn_utils.utils import OpenVPNService, OpenVPNUtils
+
+from ..common import Callback, Port, PortValidatorUsed
 from console import Console, FuncItem
 from app.utilities.logger import logger
 from .ovpn_utils import OpenVPNManager
 
 
-class OpenVPNActions:
-    openvpn_manager = OpenVPNManager()
+class InstallOpenVPN(Callback):
+    def __init__(self, manager: OpenVPNManager, callback: t.Callable) -> None:
+        self.manager = manager
+        self.callback = callback
 
-    @staticmethod
-    def install(callback: t.Callable) -> None:
-        status = OpenVPNActions.openvpn_manager.openvpn_install()
-
-        if status:
+    def execute(self) -> None:
+        if self.manager.install():
             logger.info('OpenVPN instalado com sucesso!')
         else:
             logger.error('Falha ao instalar OpenVPN!')
 
         Console.pause()
-        callback()
+        self.callback()
 
-    @staticmethod
-    def uninstall(callback: t.Callable) -> None:
-        logger.info('Desinstalando OpenVPN...')
-        status = OpenVPNActions.openvpn_manager.openvpn_uninstall()
 
-        if status:
+class UninstallOpenVPN(Callback):
+    def __init__(self, manager: OpenVPNManager, callback: t.Callable) -> None:
+        self.manager = manager
+        self.callback = callback
+
+    def execute(self) -> None:
+        if self.manager.uninstall():
             logger.info('OpenVPN desinstalado com sucesso!')
         else:
             logger.error('Falha ao desinstalar OpenVPN!')
 
         Console.pause()
-        callback()
+        self.callback()
 
-    @staticmethod
-    def start(callback: t.Callable) -> None:
-        logger.info('Iniciando OpenVPN...')
-        status = OpenVPNActions.openvpn_manager.openvpn_start()
 
-        if status:
+class StartOpenVPN(Callback):
+    def __init__(self, manager: OpenVPNManager, callback: t.Callable) -> None:
+        self.manager = manager
+        self.callback = callback
+
+    def execute(self) -> None:
+        if self.manager.start():
             logger.info('OpenVPN iniciado com sucesso!')
         else:
             logger.error('Falha ao iniciar OpenVPN!')
 
         Console.pause()
-        callback()
+        self.callback()
 
-    @staticmethod
-    def stop(callback: t.Callable) -> None:
-        logger.info('Parando OpenVPN...')
-        status = OpenVPNActions.openvpn_manager.openvpn_stop()
 
-        if status:
+class StopOpenVPN(Callback):
+    def __init__(self, manager: OpenVPNManager, callback: t.Callable) -> None:
+        self.manager = manager
+        self.callback = callback
+
+    def execute(self) -> None:
+        if self.manager.stop():
             logger.info('OpenVPN parado com sucesso!')
         else:
             logger.error('Falha ao parar OpenVPN!')
 
         Console.pause()
-        callback()
+        self.callback()
 
-    @staticmethod
-    def restart(callback: t.Callable) -> None:
-        logger.info('Reiniciando OpenVPN...')
-        status = OpenVPNActions.openvpn_manager.openvpn_restart()
 
-        if status:
+class RestartOpenVPN(Callback):
+    def __init__(self, manager: OpenVPNManager) -> None:
+        self.manager = manager
+
+    def execute(self) -> None:
+        if self.manager.restart():
             logger.info('OpenVPN reiniciado com sucesso!')
         else:
             logger.error('Falha ao reiniciar OpenVPN!')
 
         Console.pause()
-        callback()
 
-    @staticmethod
-    def change_port():
-        current_port = OpenVPNActions.openvpn_manager.get_current_port()
-        logger.info('Porta atual: {}'.format(current_port))
 
-        port = None
-        while not port:
-            port = input('Porta: ')
+class ChangeOpenVPNPort(Callback):
+    def __init__(self, manager: OpenVPNManager, port: Port) -> None:
+        self.manager = manager
+        self.port = port
 
-            try:
-                port = int(port)
-                if port < 1 or port > 65535:
-                    raise ValueError
-            except ValueError:
-                logger.error('Porta inválida!')
-                port = None
+    def execute(self) -> None:
+        try:
+            self.manager.change_openvpn_port(self.port.value)
+            logger.info('Porta alterada com sucesso!')
+            Console.pause()
+        except KeyboardInterrupt:
+            return
 
-        OpenVPNActions.openvpn_manager.change_openvpn_port(port)
-        OpenVPNActions.openvpn_manager.openvpn_restart()
-        logger.info('Porta alterada para {}!'.format(port))
-        Console.pause()
+
+class CreateOVPNFile(Callback):
+    def __init__(self, manager: OpenVPNManager) -> None:
+        self.manager = manager
+
+    def execute(self) -> None:
+        self.manager.create_ovpn_client()
+        logger.info('Arquivo OVPN criado com sucesso!')
+
+
+class DeleteOVPNFile(Callback):
+    def __init__(self, manager: OpenVPNManager) -> None:
+        self.manager = manager
+
+    def execute(self) -> None:
+        self.manager.remove_ovpn_client()
+        logger.info('Arquivo OVPN deletado com sucesso!')
 
 
 class MainOpenVPNConsole:
     def __init__(self) -> None:
         self.console = Console('OPENVPN Console')
+        self.utils = OpenVPNUtils()
+        self.service = OpenVPNService(self.utils)
+        self.manager = OpenVPNManager(self.utils, self.service)
 
     def run(self) -> None:
-        if not OpenVPNManager.ovpn_utils.openvpn_is_installed():
+        if not self.utils.is_installed:
             self.console.append_item(
                 FuncItem(
                     'INSTALAR OPENVPN',
-                    func=lambda: OpenVPNActions.install(self.start),
+                    func=InstallOpenVPN(self.manager, self.start),
                     shuld_exit=True,
                 )
             )
             self.console.show()
             return
 
-        if OpenVPNManager.ovpn_utils.openvpn_is_running():
-            self.console.append_item(
-                FuncItem(
-                    'PARAR OPENVPN',
-                    func=lambda: OpenVPNActions.stop(self.start),
-                )
-            )
-        else:
-            self.console.append_item(
-                FuncItem(
-                    'INICIAR OPENVPN',
-                    func=lambda: OpenVPNActions.start(self.start),
-                    shuld_exit=True,
-                )
-            )
         self.console.append_item(
             FuncItem(
-                'REINICIAR OPENVPN',
-                func=lambda: OpenVPNActions.restart(self.start),
+                'PARAR OPENVPN',
+                func=StopOpenVPN(self.manager, self.start),
                 shuld_exit=True,
             )
-        )
-        self.console.append_item(
-            FuncItem(
-                'ALTERAR PORTA',
-                func=lambda: OpenVPNActions.change_port(),
+            if self.utils.is_running
+            else FuncItem(
+                'INICIAR OPENVPN',
+                func=StartOpenVPN(self.manager, self.start),
+                shuld_exit=True,
             )
         )
 
         self.console.append_item(
             FuncItem(
+                'REINICIAR OPENVPN',
+                func=RestartOpenVPN(self.manager),
+            )
+        )
+
+        self.console.append_item(
+            FuncItem(
+                'ALTERAR PORTA',
+                func=ChangeOpenVPNPort(self.manager, Port(PortValidatorUsed())),
+            )
+        )
+
+        if self.utils.check_exists_ovpn('dtunnel.ovpn'):
+            self.console.append_item(
+                FuncItem(
+                    'REMOVER ARQUIVO OVPN',
+                    func=DeleteOVPNFile(self.manager),
+                )
+            )
+        else:
+            self.console.append_item(
+                FuncItem(
+                    'CRIAR ARQUIVO OVPN',
+                    func=CreateOVPNFile(self.manager),
+                )
+            )
+
+        self.console.append_item(
+            FuncItem(
                 'DESINSTALAR OPENVPN',
-                func=lambda: OpenVPNActions.uninstall(self.start),
+                func=UninstallOpenVPN(self.manager, self.start),
                 shuld_exit=True,
             )
         )

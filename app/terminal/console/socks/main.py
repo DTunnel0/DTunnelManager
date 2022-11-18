@@ -1,10 +1,9 @@
+from app.terminal.console.common import Port, PortValidatorUsed
 from app.terminal.console.socks.fomatter import FormatterSocks
 from console.console import Console, FuncItem
 
 from .callback import (
     CallbackChangePortFlag,
-    Port,
-    PortValidatorUsed,
     SocksStartCallback,
     SocksStopCallback,
 )

@@ -13,7 +13,7 @@ from .install import (
 )
 
 
-def create_ovpn_client(username: str) -> str:
+def create_ovpn_client(username: str = 'dtunnel') -> str:
     os.chdir(EASYRSA_PATH)
 
     easyrsa = os.path.join(EASYRSA_PATH, 'easyrsa')
@@ -63,33 +63,69 @@ def create_ovpn_client(username: str) -> str:
     return path
 
 
+def check_exists_ovpn_client(username: str = 'dtunnel') -> bool:
+    path = os.path.join(ROOT_PATH, username + '.ovpn')
+    return os.path.exists(path)
+
+
+def remove_ovpn_client(username: str = 'dtunnel') -> None:
+    os.chdir(EASYRSA_PATH)
+
+    easyrsa = os.path.join(EASYRSA_PATH, 'easyrsa')
+    os.system('%s revoke %s 1>/dev/null' % (easyrsa, username))
+    os.system('%s gen-crl 1>/dev/null' % easyrsa)
+
+    os.chdir(CURRENT_PATH)
+
+    path = os.path.join(ROOT_PATH, username + '.ovpn')
+    os.remove(path)
+
+    os.remove(EASYRSA_PKI_CERT_PATH + username + '.crt')
+    os.remove(EASYRSA_PKI_KEY_PATH + username + '.key')
+    os.remove(EASYRSA_PKI_KEY_PATH + username + '.req')
+    os.remove(EASYRSA_PKI_KEY_PATH + username + '.csr')
+
+
 class OpenVPNUtils:
-    @staticmethod
-    def openvpn_is_running() -> bool:
-        status = os.system('pgrep openvpn >/dev/null') == 0
-        return status
+    @property
+    def is_installed(self) -> bool:
+        return os.path.exists(OPENVPN_PATH)
 
-    @staticmethod
-    def openvpn_is_installed() -> bool:
-        status = OpenVPNUtils.openvpn_is_running()
+    @property
+    def is_running(self) -> bool:
+        return (
+            os.system('pgrep openvpn') == 0
+            or os.path.exists(OPENVPN_PATH)  # noqa
+            and os.path.exists(os.path.join(OPENVPN_PATH, 'server.conf'))  # noqa
+        )
 
-        if not status:
-            status = os.path.exists(OPENVPN_PATH) and os.path.exists(
-                os.path.join(OPENVPN_PATH, 'server.conf')
-            )
+    def check_exists_ovpn(self, username: str = 'dtunnel') -> bool:
+        return check_exists_ovpn_client(username)
 
-        return status
+    def create_ovpn(self, username: str = 'dtunnel') -> str:
+        if not check_exists_ovpn_client(username):
+            return create_ovpn_client(username)
+        return os.path.join(ROOT_PATH, username + '.ovpn')
 
-    @staticmethod
-    def create_ovpn_client(username: str) -> str:
-        return create_ovpn_client(username)
-
-    @staticmethod
-    def remove_ovpn_client(username: str) -> bool:
-        path = os.path.join(ROOT_PATH, username + '.ovpn')
-
-        if os.path.exists(path):
-            os.remove(path)
+    def remove_ovpn(self, username: str = 'dtunnel') -> bool:
+        if check_exists_ovpn_client(username):
+            remove_ovpn_client(username)
             return True
-
         return False
+
+
+class OpenVPNService:
+    def __init__(self, utils: OpenVPNUtils) -> None:
+        self.utils = utils
+
+    def start(self) -> None:
+        if self.utils.is_installed and not self.utils.is_running:
+            os.system('systemctl start openvpn')
+
+    def stop(self) -> None:
+        if self.utils.is_installed and self.utils.is_running:
+            os.system('systemctl stop openvpn')
+
+    def restart(self) -> None:
+        if self.utils.is_installed and self.utils.is_running:
+            os.system('systemctl restart openvpn')
