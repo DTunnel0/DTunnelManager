@@ -103,8 +103,8 @@ class CreateOVPNFile(Callback):
     def execute(self) -> None:
         self.manager.create_ovpn_client()
         logger.info('Arquivo OVPN criado com sucesso!')
-        self.callback()
         Console.pause()
+        self.callback()
 
 
 class DeleteOVPNFile(Callback):
