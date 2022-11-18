@@ -254,6 +254,7 @@ class Proxy(threading.Thread):
         self.__running = value
 
     def _process_request(self, data: bytes) -> None:
+        print(data)
         if self.server and not self.server.closed:
             self.server.queue(data)
             return
@@ -273,7 +274,7 @@ class Proxy(threading.Thread):
         self.server.connect()
 
         logger.info(
-            '%s -> Modo %s - %s:%s' % (self.client, connection_type.name, *connection_type.address)
+            '%s -> Modo %s - %s:%s', self.client, connection_type.name, *connection_type.address
         )
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
