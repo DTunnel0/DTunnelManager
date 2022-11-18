@@ -85,6 +85,10 @@ def remove_ovpn_client(username: str) -> None:
     os.remove(EASYRSA_PKI_KEY_PATH + username + '.req')
     os.remove(EASYRSA_PKI_KEY_PATH + username + '.csr')
 
+    os.remove(EASYRSA_PKI_KEY_PATH + 'private/' + username + '.key')
+    os.remove(EASYRSA_PKI_KEY_PATH + 'reqs/' + username + '.req')
+    os.remove(EASYRSA_PKI_KEY_PATH + 'issued/' + username + '.crt')
+
 
 class OpenVPNUtils:
     @property
