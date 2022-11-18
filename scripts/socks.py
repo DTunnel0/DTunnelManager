@@ -222,24 +222,14 @@ class Proxy(threading.Thread):
         self.parser_type.parse(data)
         host, port = (None, None) if self.parser_type.type is None else self.parser_type.address
 
-        if self.parser_type.type is None:
-            self.http_parser.parse(data)
-
-            if self.http_parser.method == b'CONNECT':
-                host, port = tuple(map(bytes.decode, self.http_parser.url.path.split(b':')))
-            else:
-                host, port = REMOTES_ADDRESS['ssh']
-
-        if host is not None and port is not None:
-            self.server = Server.of((host, int(port)))
+        if host and port:
+            self.server = Server.of((host, port))
             self.server.connect()
 
-        if self.http_parser.method == b'CONNECT' or self.parser_type.type is None:
-            self.client.queue(DEFAULT_RESPONSE)
-        elif self.parser_type.type is not None and self.server and not self.server.closed:
+        if self.server and not self.server.closed:
             self.server.queue(data)
-        elif self.server and not self.server.closed:
-            self.server.queue(self.http_parser.build())
+        else:
+            self.client.queue(DEFAULT_RESPONSE)
 
         if self.parser_type.type:
             logger.info(
@@ -247,6 +237,7 @@ class Proxy(threading.Thread):
                 % (self.client, self.parser_type.type.value.upper(), host, port)
             )
         else:
+            self.http_parser.parse(data)
             logger.info('%s -> Solicitação: %s' % (self.client, self.http_parser.body))
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
@@ -274,14 +265,14 @@ class Proxy(threading.Thread):
 
     def _process_rlist(self, rlist: List[socket.socket]) -> None:
         if self.client.conn in rlist:
-            data = self.client.read()
+            data = self.client.read(8192)
             self.running = data is not None
             if data and self.running:
                 self._process_request(data)
                 logger.debug('%s -> recebido %s bytes' % (self.client, len(data)))
 
         if self.server and not self.server.closed and self.server.conn in rlist:
-            data = self.server.read()
+            data = self.server.read(8192)
             self.running = data is not None
             if data and self.running:
                 self.client.queue(data)
