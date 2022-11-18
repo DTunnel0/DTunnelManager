@@ -30,7 +30,7 @@ DEFAULT_RESPONSE = b'\r\n'.join(
 
 REMOTES_ADDRESS = {
     'ssh': ('0.0.0.0', 22),
-    'openvpn': ('0.0.0.0.0', 1194),
+    'openvpn': ('0.0.0.0', 1194),
     'v2ray': ('0.0.0.0', 1080),
 }
 
@@ -244,7 +244,7 @@ class Proxy(threading.Thread):
             data,
         )
         self.client.queue(DEFAULT_RESPONSE)
-        self.client.flush()
+        # self.client.flush()
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
         r, w, e = [self.client.conn], [], []
