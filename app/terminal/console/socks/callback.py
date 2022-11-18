@@ -1,5 +1,6 @@
 import typing as t
 import os
+import re
 
 from app.terminal.console.socks.utils.util import Flag, FlagList, SocksManager
 from console.colors import color_name
@@ -14,7 +15,7 @@ class PortValidator:
 class PortValidatorUsed(PortValidator):
     def validate(self, port: int) -> None:
         super().validate(port)
-        cmd = 'netstat -tulpn | grep -v grep | grep {port}'.format(port=port)
+        cmd = 'netstat -tulpn | grep -v grep | grep -w {}'.format(port)
         result = os.popen(cmd).read()
         if result:
             raise ValueError('A porta {port} já está em uso'.format(port=port))

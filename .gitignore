@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+http_client.py
+
 # Distribution / packaging
 .Python
 build/
