@@ -101,8 +101,14 @@ class CreateOVPNFile(Callback):
         self.callback = callback
 
     def execute(self) -> None:
-        self.manager.create_ovpn_client()
-        logger.info('Arquivo OVPN criado com sucesso!')
+        try:
+            path = self.manager.create_ovpn_client()
+            logger.info('Arquivo OVPN criado com sucesso!')
+            logger.info('Caminho: {}'.format(path))
+        except Exception as e:
+            logger.error('Falha ao criar arquivo OVPN!')
+            logger.error(e)
+
         Console.pause()
         self.callback()
 

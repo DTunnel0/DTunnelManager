@@ -13,7 +13,7 @@ from .install import (
 )
 
 
-def create_ovpn_client(username: str = 'dtunnel') -> str:
+def create_ovpn_client(username: str) -> str:
     os.chdir(EASYRSA_PATH)
 
     easyrsa = os.path.join(EASYRSA_PATH, 'easyrsa')
@@ -63,12 +63,12 @@ def create_ovpn_client(username: str = 'dtunnel') -> str:
     return path
 
 
-def check_exists_ovpn_client(username: str = 'dtunnel') -> bool:
+def check_exists_ovpn_client(username: str) -> bool:
     path = os.path.join(ROOT_PATH, username + '.ovpn')
     return os.path.exists(path)
 
 
-def remove_ovpn_client(username: str = 'dtunnel') -> None:
+def remove_ovpn_client(username: str) -> None:
     os.chdir(EASYRSA_PATH)
 
     easyrsa = os.path.join(EASYRSA_PATH, 'easyrsa')
@@ -99,15 +99,15 @@ class OpenVPNUtils:
             and os.path.exists(os.path.join(OPENVPN_PATH, 'server.conf'))  # noqa
         )
 
-    def check_exists_ovpn(self, username: str = 'dtunnel') -> bool:
+    def check_exists_ovpn(self, username: str) -> bool:
         return check_exists_ovpn_client(username)
 
-    def create_ovpn(self, username: str = 'dtunnel') -> str:
+    def create_ovpn(self, username: str) -> str:
         if not check_exists_ovpn_client(username):
             return create_ovpn_client(username)
         return os.path.join(ROOT_PATH, username + '.ovpn')
 
-    def remove_ovpn(self, username: str = 'dtunnel') -> bool:
+    def remove_ovpn(self, username: str) -> bool:
         if check_exists_ovpn_client(username):
             remove_ovpn_client(username)
             return True

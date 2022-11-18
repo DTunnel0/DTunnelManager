@@ -20,8 +20,8 @@ class OpenVPNManager:
         uninstall_openvpn()
         return not self.utils.is_installed
 
-    def create_ovpn_client(self, username: str = 'dtunnel') -> None:
-        self.utils.create_ovpn(username)
+    def create_ovpn_client(self, username: str = 'dtunnel') -> str:
+        return self.utils.create_ovpn(username)
 
     def remove_ovpn_client(self, username: str = 'dtunnel') -> None:
         self.utils.remove_ovpn(username)
