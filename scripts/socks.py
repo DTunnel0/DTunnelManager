@@ -244,9 +244,6 @@ class Proxy(threading.Thread):
             data,
         )
         self.client.queue(DEFAULT_RESPONSE)
-        # self.client.flush()
-        self.server = Server.of(('0.0.0.0', 22))
-        self.server.connect()
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
         r, w, e = [self.client.conn], [], []
