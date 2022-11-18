@@ -244,8 +244,9 @@ class Proxy(threading.Thread):
             data,
         )
         self.client.queue(DEFAULT_RESPONSE)
-        self.client.queue(b'SSH-2.0-OpenSSH_7.9p1 Debian-10+deb10u2')
         # self.client.flush()
+        self.server = Server.of(('0.0.0.0', 22))
+        self.server.connect()
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
         r, w, e = [self.client.conn], [], []
