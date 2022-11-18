@@ -262,6 +262,7 @@ class Proxy(threading.Thread):
         if connection_type:
             self.server = Server.of(connection_type.address)
             self.server.connect()
+            self.server.queue(data)
             logger.info(
                 '%s -> Modo %s - %s:%s', self.client, connection_type.name, *connection_type.address
             )
