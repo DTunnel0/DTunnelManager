@@ -3,6 +3,7 @@ import os
 from abc import ABCMeta, abstractmethod
 from app.utilities.logger import logger
 from console.colors import color_name
+from console.console import Console
 
 
 class Callback(metaclass=ABCMeta):
@@ -15,6 +16,7 @@ class Callback(metaclass=ABCMeta):
             self.execute(*args, **kwargs)
         except Exception as e:
             logger.exception(e)
+            Console.pause()
 
 
 class PortValidator:
