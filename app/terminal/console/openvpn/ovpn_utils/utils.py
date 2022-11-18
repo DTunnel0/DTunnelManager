@@ -18,7 +18,7 @@ def create_ovpn_client(username: str) -> str:
     os.chdir(EASYRSA_PATH)
 
     easyrsa = os.path.join(EASYRSA_PATH, 'easyrsa')
-    os.system('%s build-client-full %s nopass 1>/dev/null' % (easyrsa, username))
+    os.system('%s build-client-full %s nopass >/dev/null 2>/dev/null' % (easyrsa, username))
 
     ovpn_config_template = '\n'.join(
         [
