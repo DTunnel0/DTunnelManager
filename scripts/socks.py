@@ -254,31 +254,28 @@ class Proxy(threading.Thread):
         self.__running = value
 
     def _process_request(self, data: bytes) -> None:
-        print(data)
         if self.server and not self.server.closed:
             self.server.queue(data)
+            return
+
+        connection_type = ConnectionTypeFactory.get_type(data)
+        if connection_type:
+            self.server = Server.of(connection_type.address)
+            self.server.connect()
+            logger.info(
+                '%s -> Modo %s - %s:%s', self.client, connection_type.name, *connection_type.address
+            )
             return
 
         self.http_parser.parse(data)
         logger.info('%s -> Solicitação: %s' % (self.client, self.http_parser.body))
 
         self.client.queue(DEFAULT_RESPONSE)
-        self.client.flush()
+        # self.client.flush()
 
-        data = self.client.read()
-        if not data:
-            return
-
-        connection_type = ConnectionTypeFactory.get_type(data)
-        if not connection_type:
-            raise ValueError('Connection type not supported')
-
-        self.server = Server.of(connection_type.address)
-        self.server.connect()
-
-        logger.info(
-            '%s -> Modo %s - %s:%s', self.client, connection_type.name, *connection_type.address
-        )
+        # data = self.client.read()
+        # if not data:
+        #     return
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
         r, w, e = [self.client.conn], [], []
