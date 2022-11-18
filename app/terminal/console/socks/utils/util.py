@@ -96,12 +96,10 @@ class SocksManager:
         port: int,
         flag_list: FlagList,
         mode: str,
-        ssl: bool = False,
     ):
         self.port = port
         self.flag_list = flag_list
-        self.mode = mode
-        self.ssl = ssl
+        self.mode = mode.lower()
 
     @property
     def command(self) -> str:
@@ -110,9 +108,10 @@ class SocksManager:
             port=self.port,
             flags=self.flag_list,
         )
-        if self.ssl:
+        if self.mode == 'https':
             cmd += ' --cert {cert_path}'.format(cert_path=CERT_PATH)
-        return cmd + ' --{mode}'.format(mode=self.mode)
+            cmd += ' --{mode}'.format(mode=self.mode)
+        return cmd
 
     @property
     def screen(self) -> Screen:

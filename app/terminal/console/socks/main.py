@@ -24,7 +24,6 @@ class MainSocksConsole:
                 ]
             ),
             mode,
-            mode == 'HTTPS',
         )
 
         self.formatter = FormatterSocks(
