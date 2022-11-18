@@ -162,7 +162,7 @@ class MainOpenVPNConsole:
             )
         )
 
-        if self.utils.check_exists_ovpn('dtunnel.ovpn'):
+        if self.utils.check_exists_ovpn('dtunnel'):
             self.console.append_item(
                 FuncItem(
                     'REMOVER ARQUIVO OVPN',
