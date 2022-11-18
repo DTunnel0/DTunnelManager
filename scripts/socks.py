@@ -225,7 +225,11 @@ class Proxy(threading.Thread):
             self.server.queue(data)
             return
 
-        connection_type = ConnectionTypeFactory.get_type(data)
+        self.client.queue(DEFAULT_RESPONSE)
+        self.client.flush()
+
+        # connection_type = ConnectionTypeFactory.get_type(data)
+        connection_type = ConnectionTypeFactory.get_type(b'SSH-2.0-OpenSSH_7.4')
         if connection_type:
             logger.info(
                 '%s -> Modo %s - %s:%s',
@@ -238,12 +242,12 @@ class Proxy(threading.Thread):
             self.server.queue(data)
             return
 
-        logger.info(
-            '%s -> Solicitação: %s',
-            self.client,
-            data,
-        )
-        self.client.queue(DEFAULT_RESPONSE)
+        # logger.info(
+        #     '%s -> Solicitação: %s',
+        #     self.client,
+        #     data,
+        # )
+        # self.client.queue(DEFAULT_RESPONSE)
         # self.client.flush()
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
