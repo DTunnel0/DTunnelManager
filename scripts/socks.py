@@ -1,3 +1,5 @@
+# type: ignore
+
 import socket
 import ssl
 import select
@@ -7,6 +9,7 @@ import argparse
 import logging
 import resource
 
+from abc import abstractproperty
 from urllib.parse import urlparse
 from typing import List, Tuple, Union, Optional
 from enum import Enum
@@ -32,30 +35,67 @@ REMOTES_ADDRESS = {
 }
 
 
-class RemoteTypes(Enum):
-    SSH = 'ssh'
-    OPENVPN = 'openvpn'
-    V2RAY = 'v2ray'
+class ConnectionTypeParser:
+    def __init__(self, type: str, address: Tuple[str, int]):
+        self._type = type
+        self._address = address
+
+    @property
+    def type(self) -> bytes:
+        return self._type
+
+    @property
+    def address(self) -> bytes:
+        return self._address
+
+    @abstractproperty
+    def name(self) -> str:
+        raise NotImplementedError
+
+    def is_valid(self, data: bytes) -> bool:
+        return data.startswith(self._type)
 
 
-class ParserType:
+class SSHConnectionType(ConnectionTypeParser):
     def __init__(self) -> None:
-        self.type = None
-        self.address = None
+        super().__init__(b'SSH-', REMOTES_ADDRESS['ssh'])
 
-    def parse(self, data: bytes) -> None:
-        if data.startswith(b'\x0068'):
-            self.type = RemoteTypes.OPENVPN
-            self.address = REMOTES_ADDRESS[self.type.value]
-            return
+    @property
+    def name(self) -> str:
+        return 'SSH'
 
-        if data.startswith(b'\x00'):
-            self.type = RemoteTypes.V2RAY
-            self.address = REMOTES_ADDRESS[self.type.value]
 
-        if data.startswith(b'SSH-'):
-            self.type = RemoteTypes.SSH
-            self.address = REMOTES_ADDRESS[self.type.value]
+class OpenVPNConnectionType(ConnectionTypeParser):
+    def __init__(self) -> None:
+        super().__init__(b'\x0068', REMOTES_ADDRESS['openvpn'])
+
+    @property
+    def name(self) -> str:
+        return 'OpenVPN'
+
+
+class V2RayConnectionType(ConnectionTypeParser):
+    def __init__(self) -> None:
+        super().__init__(b'\x00', REMOTES_ADDRESS['v2ray'])
+
+    @property
+    def name(self) -> str:
+        return 'V2Ray'
+
+
+class ConnectionTypeFactory:
+    _types = [
+        SSHConnectionType(),
+        OpenVPNConnectionType(),
+        V2RayConnectionType(),
+    ]
+
+    @staticmethod
+    def get_type(data: bytes) -> Union[ConnectionTypeParser, None]:
+        for _type in ConnectionTypeFactory._types:
+            if _type.is_valid(data):
+                return _type
+        return None
 
 
 class HttpParser:
@@ -78,7 +118,7 @@ class HttpParser:
         self.body = (
             b'\r\n'.join(lines[:-1])
             if not self.headers.get(b'Content-Length')
-            else b'\r\n'.join(lines[-1 : -1 * int(self.headers[b'Content-Length'])])
+            else b'\r\n'.join(lines[-1 : -1 * int(self.headers[b'Content-Length'])])  # noqa
         )
 
     def build(self) -> bytes:
@@ -200,7 +240,6 @@ class Proxy(threading.Thread):
         self.server = server
 
         self.http_parser = HttpParser()
-        self.parser_type = ParserType()
 
         self.__running = False
 
@@ -215,30 +254,27 @@ class Proxy(threading.Thread):
         self.__running = value
 
     def _process_request(self, data: bytes) -> None:
-        if self.parser_type.type is not None and self.server and not self.server.closed:
+        if self.server and not self.server.closed:
             self.server.queue(data)
             return
 
-        self.parser_type.parse(data)
-        host, port = (None, None) if self.parser_type.type is None else self.parser_type.address
+        self.http_parser.parse(data)
+        logger.info('%s -> Solicitação: %s' % (self.client, self.http_parser.body))
 
-        if host and port:
-            self.server = Server.of((host, port))
-            self.server.connect()
+        self.client.queue(DEFAULT_RESPONSE)
+        self.client.flush()
 
-        if self.server and not self.server.closed:
-            self.server.queue(data)
-        else:
-            self.client.queue(DEFAULT_RESPONSE)
+        data = self.client.read()
+        connection_type = ConnectionTypeFactory.get_type(data)
+        if not connection_type:
+            raise ValueError('Connection type not supported')
 
-        if self.parser_type.type:
-            logger.info(
-                '%s -> Modo %s - %s:%s'
-                % (self.client, self.parser_type.type.value.upper(), host, port)
-            )
-        else:
-            self.http_parser.parse(data)
-            logger.info('%s -> Solicitação: %s' % (self.client, self.http_parser.body))
+        self.server = Server.of(connection_type.address)
+        self.server.connect()
+
+        logger.info(
+            '%s -> Modo %s - %s:%s' % (self.client, connection_type.name, *connection_type.address)
+        )
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
         r, w, e = [self.client.conn], [], []
