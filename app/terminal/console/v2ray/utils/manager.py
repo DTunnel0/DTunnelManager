@@ -24,6 +24,18 @@ def create_uuid() -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, hash_data))
 
 
+def _normalize_service_v2ray() -> None:
+    old = '/usr/bin/v2ray/v2ray -config /etc/v2ray/config.json'
+    new = '/usr/bin/v2ray/v2ray run -c /etc/v2ray/config.json'
+    target = '/etc/systemd/system/v2ray.service'
+
+    data = open(target).read()
+    data = data.replace(old, new)
+
+    with open(target, 'w') as f:
+        f.write(data)
+
+
 class V2RayManager:
     def __init__(self) -> None:
         self.config = V2RayConfig()
@@ -37,6 +49,7 @@ class V2RayManager:
             V2RayConfig().create(port=1080, protocol='vless')
             V2RayManager.restart()
 
+        _normalize_service_v2ray()
         return status
 
     @staticmethod
