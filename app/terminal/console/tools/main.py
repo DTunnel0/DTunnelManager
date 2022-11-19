@@ -4,7 +4,7 @@ import re
 import typing as t
 
 from app.data.repositories import UserRepository
-from app.infra.controllers.create_user import CreateUserController
+from app.infra.controllers.user.create import CreateUserController
 
 # from app.domain.dtos import UserDto
 # from app.domain.use_cases import UserUseCase

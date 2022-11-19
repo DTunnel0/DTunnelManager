@@ -1,4 +1,4 @@
-from app.domain.interfaces.user_gateway import UserGatewayInterface
+from ...interfaces.user_gateway import UserGatewayInterface
 
 
 class CountUserConnection:

@@ -1,19 +1,18 @@
 import datetime
 import typing as t
 
-from app.infra.controllers.count_connection import CountUserConnectionController
-from app.infra.controllers.create_user import CreateUserController
-from app.infra.controllers.delete_user import DeleteUserController
-from app.infra.controllers.get_user import GetUserByUsernameController
-from app.infra.controllers.update_user import UpdateUserController
-
-from app.terminal.console.common import Callback
-from app.terminal.console.user.console import UserConsole
-from app.terminal.console.user.input import ConnectionLimit, ExpirationDate, Password, UserInputData
-
 from console.colors import color_name
 from console.console import Console
 from console.formatter import create_menu_bg
+
+from ....infra.controllers.user.count_connection import CountUserConnectionController
+from ....infra.controllers.user.create import CreateUserController
+from ....infra.controllers.user.delete import DeleteUserController
+from ....infra.controllers.user.get_user import GetUserByUsernameController
+from ....infra.controllers.user.update import UpdateUserController
+from ..common import Callback
+from .console import UserConsole
+from .input import ConnectionLimit, ExpirationDate, Password, UserInputData
 
 
 class UserCallback(Callback):
@@ -167,11 +166,11 @@ class ExpirationDateChangeCallback(UserCallback):
 class MonitorCallback(Callback):
     def __init__(
         self,
-        count_user_connection_controller: CountUserConnectionController,
+        controller: CountUserConnectionController,
         users: t.List[UserConsole],
     ) -> None:
         self._users = users
-        self._count_user_connection_controller = count_user_connection_controller
+        self.controller = controller
 
     def __build_header(self) -> str:
         items = ['USUARIO', 'CONEXOES', 'LIMITE', 'EXPIRACAO']
@@ -196,7 +195,7 @@ class MonitorCallback(Callback):
     def __build_line(self, user: UserConsole) -> str:
         items = [
             user.username,
-            '%02d' % self._count_user_connection_controller.handle(user.username),
+            '%02d' % self.controller.handle(user.username),
             '%02d' % user.connection_limit,
             '%02d dias' % (user.expiration_date - datetime.datetime.now()).days,
         ]

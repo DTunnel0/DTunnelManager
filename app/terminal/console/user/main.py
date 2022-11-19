@@ -1,11 +1,11 @@
 import typing as t
 
-from app.infra.controllers.count_connection import CountUserConnectionController
-from app.infra.controllers.create_user import CreateUserController
-from app.infra.controllers.delete_user import DeleteUserController
-from app.infra.controllers.get_all_users import GetAllUsersController
-from app.infra.controllers.get_user import GetUserByUsernameController
-from app.infra.controllers.update_user import UpdateUserController
+from app.infra.controllers.user.count_connection import CountUserConnectionController
+from app.infra.controllers.user.create import CreateUserController
+from app.infra.controllers.user.delete import DeleteUserController
+from app.infra.controllers.user.get_all import GetAllUsersController
+from app.infra.controllers.user.get_user import GetUserByUsernameController
+from app.infra.controllers.user.update import UpdateUserController
 from app.terminal.console.user.callback import (
     ConnectionLimitChangeCallback,
     CreateUserCallback,

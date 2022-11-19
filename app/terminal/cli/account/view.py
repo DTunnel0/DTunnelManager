@@ -3,7 +3,7 @@ import json
 from argparse import ArgumentParser
 from typing import Any
 
-from app.infra.controllers.get_user import GetUserByUsernameController
+from app.infra.controllers.user.get_user import GetUserByUsernameController
 
 
 class ViewAccount:

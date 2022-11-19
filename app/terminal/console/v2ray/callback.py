@@ -1,6 +1,6 @@
 import typing as t
 
-from app.infra.controllers.update_user import UpdateUserController
+from app.infra.controllers.user.update import UpdateUserController
 from app.terminal.console.common import Callback
 from app.terminal.console.user.console import UserConsole, UserMenuConsole
 

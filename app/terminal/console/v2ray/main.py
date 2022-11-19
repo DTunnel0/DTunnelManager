@@ -1,8 +1,8 @@
 import typing as t
 
-from app.infra.controllers.get_all_users import GetAllUsersController
-from app.infra.controllers.get_user import GetUserByUUIDController
-from app.infra.controllers.update_user import UpdateUserController
+from app.infra.controllers.user.get_all import GetAllUsersController
+from app.infra.controllers.user.get_user import GetUserByUUIDController
+from app.infra.controllers.user.update import UpdateUserController
 from app.terminal.console.user.console import UserConsole
 from app.terminal.console.v2ray.console import (ConsoleDeleteUUID,
                                                 ConsoleListUUID)

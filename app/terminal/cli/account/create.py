@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from argparse import ArgumentParser
 from typing import Any
 
-from app.infra.controllers.create_user import CreateUserController
+from app.infra.controllers.user.create import CreateUserController
 
 
 class AccountCreate:

@@ -2,9 +2,9 @@ import argparse
 import importlib
 
 from . import bot
-
-from .config import set_admin_id, set_bot_token, get_admin_id, get_bot_token
 from .commands import ALL_MODULES
+from .config import get_admin_id, get_bot_token, set_admin_id, set_bot_token
+from .handlers.list_users import ListUsersHandler
 
 parser = argparse.ArgumentParser(description='Helper for the bot')
 parser.add_argument(
@@ -97,7 +97,6 @@ def stop_bot():
 
 
 def main():
-
     args = parser.parse_args()
 
     if args.token:
@@ -127,6 +126,11 @@ def main():
     if args.stop:
         stop_bot()
 
+
+from app.__main__ import get_all_users_controller
+
+handler = ListUsersHandler(get_all_users_controller, bot)
+bot.polling()
 
 if __name__ == '__main__':
     main()

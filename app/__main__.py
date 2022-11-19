@@ -1,27 +1,25 @@
-import sys
-
-from app.data.gateway.user import SystemUserGateway
-from app.data.repositories.user import UserRepository
-
-from app.domain.use_cases.user.create_user import CreateUserUseCase
-from app.domain.use_cases.user.get_user import (
+from .data.gateway.user import SystemUserGateway
+from .data.repositories.user import UserRepository
+from .domain.use_cases.user.count_connections import CountUserConnection
+from .domain.use_cases.user.create_user import CreateUserUseCase
+from .domain.use_cases.user.delete_user import DeleteUserUseCase
+from .domain.use_cases.user.get_user import (
     GetAllUsersUseCase,
     GetUserByUsernameUseCase,
     GetUserByUUIDUseCase,
 )
-from app.domain.use_cases.user.update_user import UpdateUserUseCase
-from app.domain.use_cases.user.delete_user import DeleteUserUseCase
-from app.domain.use_cases.user.count_connections import CountUserConnection
-
-from app.infra.controllers.create_user import CreateUserController
-from app.infra.controllers.get_all_users import GetAllUsersController
-from app.infra.controllers.get_user import GetUserByUsernameController, GetUserByUUIDController
-from app.infra.controllers.update_user import UpdateUserController
-from app.infra.controllers.delete_user import DeleteUserController
-from app.infra.controllers.count_connection import CountUserConnectionController
-from app.infra.presenters.console import CreateUserConsolePresenter
-
-from app.terminal import terminal_main
+from .domain.use_cases.user.update_user import UpdateUserUseCase
+from .infra.controllers.user.count_connection import CountUserConnectionController
+from .infra.controllers.user.create import CreateUserController
+from .infra.controllers.user.delete import DeleteUserController
+from .infra.controllers.user.get_all import GetAllUsersController
+from .infra.controllers.user.get_user import (
+    GetUserByUsernameController,
+    GetUserByUUIDController,
+)
+from .infra.controllers.user.update import UpdateUserController
+from .infra.presenters.console import CreateUserConsolePresenter
+from .terminal import terminal_main
 
 gateway = SystemUserGateway()
 repository = UserRepository()

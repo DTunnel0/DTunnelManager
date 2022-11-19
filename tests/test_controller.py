@@ -1,7 +1,7 @@
 from unittest import mock
 
 from app.infra.presenters.console import UserConsoleModel, CreateUserConsolePresenter
-from app.infra.controllers.create_user import CreateUserController
+from app.infra.controllers.user.create import CreateUserController
 
 
 def test_create_user_controller():

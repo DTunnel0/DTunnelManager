@@ -1,8 +1,11 @@
 import json
-import threading
 import os
+import threading
 
-PATH = '/etc/DTunnelManager/'
+PATH = (
+    '/etc/DTunnelManager/' if os.geteuid() == 0 else os.path.expanduser('~/.config/DTunnelManager/')
+)
+
 CONFIG_FILE = 'config.json'
 CONFIG_FILE_PATH = os.path.join(PATH, CONFIG_FILE)
 
