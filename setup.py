@@ -6,7 +6,6 @@ from app.version import __version__
 PACKAGES = find_packages() + ['scripts']
 REQUIREMENTS = [
     'sqlalchemy',
-    'pytest',
     'distro',
     'pytelegrambotapi==4.6.0',
     'python-daemon',
