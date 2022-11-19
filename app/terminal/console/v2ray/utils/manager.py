@@ -5,8 +5,8 @@ import time
 from typing import List
 from .config import V2RayConfig
 
-V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L -s https://multi.netlify.app/go.sh)\' -f'
-V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L -s https://multi.netlify.app/go.sh)\' --remove'
+V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L -s https://multi.netlify.app/go.sh) -f \''
+V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L -s https://multi.netlify.app/go.sh) --remove \''
 
 
 def create_uuid() -> str:
