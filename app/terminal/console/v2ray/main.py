@@ -79,8 +79,7 @@ class MainV2rayConsole:
                     shuld_exit=True,
                 )
             )
-
-        if V2RayManager.is_running():
+        else:
             self.console.append_item(
                 FuncItem(
                     'PARAR V2RAY',

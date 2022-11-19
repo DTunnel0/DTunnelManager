@@ -35,6 +35,8 @@ def _normalize_service_v2ray() -> None:
     with open(target, 'w') as f:
         f.write(data)
 
+    os.system('systemctl daemon-reload')
+
 
 class V2RayManager:
     def __init__(self) -> None:
