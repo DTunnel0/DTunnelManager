@@ -49,10 +49,12 @@ class MainUserConsole:
     @property
     def users(self) -> t.List[UserConsole]:
         if not self._users:
-            self._users = [
-                UserConsole.create(user.to_dict())
-                for user in self._get_all_users_controller.handle()
-            ]
+            self._users.extend(
+                [
+                    UserConsole.create(user.to_dict())
+                    for user in self._get_all_users_controller.handle()
+                ]
+            )
         return self._users
 
     def run(self) -> None:

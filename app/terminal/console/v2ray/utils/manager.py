@@ -123,6 +123,6 @@ class V2RayManager:
         self.config.save(config_data)
         self.restart()
 
-    def get_uuid_list(self) -> List[str]:
+    def get_uuids(self) -> List[str]:
         config_data = self.config.load()
         return [client['id'] for client in config_data['inbounds'][0]['settings']['clients']]

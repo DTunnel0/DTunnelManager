@@ -42,7 +42,7 @@ class MainV2rayConsole:
     @property
     def uuids(self) -> t.List[str]:
         if not self._uuids:
-            self._uuids = self.v2ray_manager.get_uuid_list()
+            self._uuids.extend(self.v2ray_manager.get_uuids())
         return self._uuids
 
     @property
@@ -110,14 +110,14 @@ class MainV2rayConsole:
         self.console.append_item(
             FuncItem(
                 'CRIAR NOVO UUID',
-                V2RayCreateUUIDCallback(self.v2ray_manager),
+                V2RayCreateUUIDCallback(self.uuids, self.v2ray_manager),
             ),
         )
 
         self.console.append_item(
             FuncItem(
                 'REMOVER UUID',
-                ConsoleDeleteUUID(
+                lambda: ConsoleDeleteUUID(
                     self.uuids,
                     self.users,
                     V2RayRemoveUUIDCallback(
@@ -126,13 +126,13 @@ class MainV2rayConsole:
                         self.update_user_controller,
                         self.v2ray_manager,
                     ),
-                ).start,
+                ).start(),
             )
         )
         self.console.append_item(
             FuncItem(
                 'LISTAR UUID\'S',
-                ConsoleListUUID(
+                lambda: ConsoleListUUID(
                     self.uuids,
                     self.users,
                     V2RayUUIDListCallback(
@@ -140,7 +140,7 @@ class MainV2rayConsole:
                         self.update_user_controller,
                         self.v2ray_manager,
                     ),
-                ).start,
+                ).start(),
             )
         )
         self.console.append_item(

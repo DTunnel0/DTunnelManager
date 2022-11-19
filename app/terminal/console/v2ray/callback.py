@@ -152,11 +152,17 @@ class AssociateUserCallback(Callback):
 
 
 class V2RayCreateUUIDCallback(V2Callback):
+    def __init__(self, uuids: t.List[str], *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.uuids = uuids
+
     def execute(self) -> None:
         self.pause_screen = False
         v2ray_manager = self.v2ray_manager
         uuid = v2ray_manager.create_new_uuid()
         logger.info('UUID criado: %s' % uuid)
+        self.uuids.append(uuid)
+        self.pause()
 
 
 class V2RayRemoveUUIDCallback(V2Callback):
@@ -174,15 +180,7 @@ class V2RayRemoveUUIDCallback(V2Callback):
         self.users = users
         self.conetroller = conetroller
 
-    def __find_user_by_uuid(self, uuid: str) -> t.Optional[UserConsole]:
-        for user in self.users:
-            if user.v2ray_uuid == uuid:
-                return user
-
-        return None
-
-    def __remove_uuid(self, uuid: str) -> None:
-        user = self.__find_user_by_uuid(uuid)
+    def __remove_uuid(self, uuid: str, user: UserConsole) -> None:
         if user is not None:
             self.conetroller.handle(
                 {
@@ -194,10 +192,10 @@ class V2RayRemoveUUIDCallback(V2Callback):
         self.uuids.remove(uuid)
         self.v2ray_manager.remove_uuid(uuid)
 
-    def execute(self, uuid: str) -> None:
-        self.__remove_uuid(uuid)
+    def execute(self, uuid: str, user: UserConsole) -> None:
+        self.__remove_uuid(uuid, user)
         logger.info('UUID removido com sucesso!')
-        Console.pause()
+        self.pause()
 
 
 class V2RayConfigCallback(V2Callback):
@@ -232,6 +230,7 @@ class V2RayConfigCallback(V2Callback):
         print(color_name.YELLOW + 'V2Ray Link' + color_name.RESET)
         print(color_name.GREEN + 'Link: %s' % vless_link + color_name.RESET)
         print(create_line(show=False))
+        self.pause()
 
 
 class V2RayUUIDListCallback(V2Callback):
