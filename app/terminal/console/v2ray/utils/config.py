@@ -13,7 +13,7 @@ class V2RayConfig:
 
     def load(self) -> dict:
         if not os.path.exists(self.config_path):
-            self.create(port=5555, protocol='vless')
+            self.create(port=1080, protocol='vless')
 
         with open(self.config_path, 'r') as f:
             self.config_data = json.load(f)

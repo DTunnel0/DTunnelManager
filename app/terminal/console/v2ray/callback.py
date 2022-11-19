@@ -1,12 +1,13 @@
 import typing as t
 
-from app.infra.controllers.user.update import UpdateUserController
-from app.terminal.console.common import Callback
-from app.terminal.console.user.console import UserConsole, UserMenuConsole
+from ....infra.controllers.user.update import UpdateUserController
+from ..common import Callback
+from ..user.console import UserConsole, UserMenuConsole
+from .utils.manager import V2RayManager
 
-from app.terminal.console.v2ray.utils.manager import V2RayManager
-from app.utilities.logger import logger
-from app.utilities.utils import get_ip_address
+from ....utilities.logger import logger
+from ....utilities.utils import get_ip_address
+
 from console.colors import color_name
 from console.console import Console
 from console.formatter import create_line

@@ -6,6 +6,7 @@ from typing import List
 from .config import V2RayConfig
 
 V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L -s https://multi.netlify.app/go.sh)\' -f'
+V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L -s https://multi.netlify.app/go.sh)\' --remove'
 
 
 def create_uuid() -> str:
@@ -33,19 +34,21 @@ class V2RayManager:
         status = os.system(cmd) == 0
 
         if status:
-            V2RayConfig().create(port=5555, protocol='vless')
+            V2RayConfig().create(port=1080, protocol='vless')
             V2RayManager.restart()
 
         return status
 
     @staticmethod
     def uninstall() -> bool:
-        os.system('rm -rf /etc/v2ray')
-        os.system('rm -rf /usr/bin/v2ray/')
+        # os.system('rm -rf /etc/v2ray')
+        # os.system('rm -rf /usr/bin/v2ray/')
 
-        V2RayManager.stop()
+        # V2RayManager.stop()
 
-        return not V2RayManager.is_installed()
+        cmd = V2RAY_CMD_UNINSTALL
+        status = os.system(cmd) == 0
+        return status and not V2RayManager.is_installed()
 
     @staticmethod
     def is_installed() -> bool:
@@ -53,7 +56,7 @@ class V2RayManager:
 
     @staticmethod
     def is_running() -> bool:
-        cmd = 'ps -ef | grep v2ray | grep -v grep'
+        cmd = 'ps -ef | grep \'\/usr\/bin\/v2ray\/v2ray\' | grep -v grep'
         return os.system(cmd) == 0
 
     @staticmethod
