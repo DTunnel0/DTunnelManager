@@ -1,8 +1,11 @@
 run:
 	python3 -m app
 
-install:
-	python3 setup.py install
-
 clean:
-	rm -rf build dist *.egg-info
+	@echo 'Cleaning up...'
+	rm -rf build dist *.egg-info *.spec
+
+build:
+	$(MAKE) clean
+	@echo 'Building...'
+	pyinstaller --onefile --windowed --name=vps main.py 1>/dev/null 2>&1
