@@ -1,7 +1,7 @@
 import datetime
 import typing as t
-from app.terminal.console.common import Callback
 
+from app.terminal.console.common import Callback
 from app.utilities.logger import logger
 from console import Console, Formatter, FuncItem
 

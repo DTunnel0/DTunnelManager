@@ -3,16 +3,22 @@ import typing as t
 from app.infra.controllers.user.get_all import GetAllUsersController
 from app.infra.controllers.user.get_user import GetUserByUUIDController
 from app.infra.controllers.user.update import UpdateUserController
-from app.terminal.console.user.console import UserConsole
-from app.terminal.console.v2ray.console import (ConsoleDeleteUUID,
-                                                ConsoleListUUID)
+from app.terminal.console.user.console import UserConsole, UserMenuConsole
+from app.terminal.console.v2ray.console import ConsoleDeleteUUID, ConsoleListUUID
 from console.console import Console, FuncItem
 
-from .callback import (V2RayChangePortCallback, V2RayConfigCallback,
-                       V2RayCreateUUIDCallback, V2RayInstallCallback,
-                       V2RayRemoveUUIDCallback, V2RayRestartCallback,
-                       V2RayStartCallback, V2RayStopCallback,
-                       V2RayUninstallCallback, V2RayUUIDListCallback)
+from .callback import (
+    V2RayChangePortCallback,
+    V2RayConfigCallback,
+    V2RayCreateUUIDCallback,
+    V2RayInstallCallback,
+    V2RayRemoveUUIDCallback,
+    V2RayRestartCallback,
+    V2RayStartCallback,
+    V2RayStopCallback,
+    V2RayUninstallCallback,
+    V2RayUUIDListCallback,
+)
 from .utils.manager import V2RayManager
 
 

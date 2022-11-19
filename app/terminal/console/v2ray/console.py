@@ -1,8 +1,8 @@
-from app.terminal.console.user.console import UserConsole
-from app.terminal.console.common import Callback
 import typing as t
-from app.utilities.logger import logger
 
+from app.terminal.console.common import Callback
+from app.terminal.console.user.console import UserConsole
+from app.utilities.logger import logger
 from console.console import Console, FuncItem
 from console.formatter import Formatter
 
