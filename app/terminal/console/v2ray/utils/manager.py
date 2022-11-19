@@ -46,19 +46,14 @@ class V2RayManager:
         status = os.system(cmd) == 0
 
         if status:
+            _normalize_service_v2ray()
             V2RayConfig().create(port=1080, protocol='vless')
             V2RayManager.restart()
 
-        _normalize_service_v2ray()
         return status
 
     @staticmethod
     def uninstall() -> bool:
-        # os.system('rm -rf /etc/v2ray')
-        # os.system('rm -rf /usr/bin/v2ray/')
-
-        # V2RayManager.stop()
-
         cmd = V2RAY_CMD_UNINSTALL
         status = os.system(cmd) == 0
         return status and not V2RayManager.is_installed()
