@@ -1,5 +1,3 @@
-# type: ignore
-
 import socket
 import ssl
 import select
@@ -9,7 +7,7 @@ import argparse
 import logging
 import resource
 
-from abc import abstractproperty
+from abc import abstractproperty, ABCMeta, abstractmethod
 from typing import List, Tuple, Union, Optional
 
 __author__ = 'Glemison C. Dutra'
@@ -41,20 +39,38 @@ REMOTES_ADDRESS = {
 }
 
 
-class ResponseParser:
-    def __init__(self, data: bytes):
-        self.data = data
+class ResponseParser(metaclass=ABCMeta):
+    @abstractmethod
+    def parse(self, data: bytes) -> bytes:
+        raise NotImplementedError
 
-    def is_websocket(self) -> bool:
-        return b'upgrade: websocket' in self.data.lower()
 
-    @property
-    def response(self) -> bytes:
-        return WS_DEFAULT_RESPONSE if self.is_websocket() else HTTP_DEFAULT_RESPONSE
+class ResponseParserAbstract(ResponseParser):
+    def __init__(self, next: Union[ResponseParser, None] = None):
+        self.next = next
+
+    def parse(self, data: bytes) -> bytes:
+        if self.next:
+            return self.next.parse(data)
+        return data
+
+
+class WebsocketParseResponse(ResponseParserAbstract):
+    def parse(self, data: bytes) -> bytes:
+        if b'upgrade: websocket' in data.lower():
+            return WS_DEFAULT_RESPONSE
+        return super().parse(data)
+
+
+class HttpParseResponse(ResponseParserAbstract):
+    def parse(self, data: bytes) -> bytes:
+        if b'upgrade: websocket' not in data.lower():
+            return HTTP_DEFAULT_RESPONSE
+        return super().parse(data)
 
 
 class ConnectionTypeParser:
-    def __init__(self, type: str, address: Tuple[str, int]):
+    def __init__(self, type: bytes, address: Tuple[str, int]):
         self._type = type
         self._address = address
 
@@ -63,7 +79,7 @@ class ConnectionTypeParser:
         return self._type
 
     @property
-    def address(self) -> bytes:
+    def address(self) -> Tuple[str, int]:
         return self._address
 
     @abstractproperty
@@ -227,6 +243,7 @@ class Proxy(threading.Thread):
         self.client = client
         self.server = server
         self.__running = False
+        self.__http_response_parser = WebsocketParseResponse(HttpParseResponse())
 
     @property
     def running(self) -> bool:
@@ -261,11 +278,10 @@ class Proxy(threading.Thread):
             self.client,
             data,
         )
-        parser = ResponseParser(data)
-        self.client.queue(parser.response)
+        self.client.queue(self.__http_response_parser.parse(data))
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
-        r, w, e = [self.client.conn], [], []
+        r, w, e = ([self.client.conn], [], [])  # type: ignore
 
         if self.server and not self.server.closed:
             r.append(self.server.conn)
@@ -276,7 +292,7 @@ class Proxy(threading.Thread):
         if self.server and not self.server.closed and self.server.buffer:
             w.append(self.server.conn)
 
-        return r, w, e
+        return r, w, e  # type: ignore
 
     def _process_wlist(self, wlist: List[socket.socket]) -> None:
         if self.client.conn in wlist:
@@ -306,8 +322,8 @@ class Proxy(threading.Thread):
         self.running = True
 
         while self.running:
-            rlist, wlist, xlist = self._get_waitable_lists()
-            r, w, _ = select.select(rlist, wlist, xlist, 1)
+            rlist, wlist, xlist = self._get_waitable_lists()  # type: ignore
+            r, w, _ = select.select(rlist, wlist, xlist, 1)  # type: ignore
 
             self._process_wlist(w)
             self._process_rlist(r)
@@ -327,7 +343,7 @@ class Proxy(threading.Thread):
 
 
 class TCP:
-    def __init__(self, addr: Tuple[str, int] = None, backlog: int = 5):
+    def __init__(self, addr: Tuple[str, int], backlog: int = 5):
         self.__addr = addr
         self.__backlog = backlog
 
@@ -335,7 +351,7 @@ class TCP:
         self.__sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def __str__(self) -> str:
-        return '%s - %s:%s' % (self.__class__.__name__, *self.__addr)
+        return '%s - %s:%d' % (self.__class__.__name__, *self.__addr)
 
     def handle(self, conn: socket.socket, addr: Tuple[str, int]) -> None:
         raise NotImplementedError()
