@@ -10,9 +10,7 @@ import logging
 import resource
 
 from abc import abstractproperty
-from urllib.parse import urlparse
 from typing import List, Tuple, Union, Optional
-from enum import Enum
 
 __author__ = 'Glemison C. Dutra'
 __version__ = '1.0.3'
@@ -21,18 +19,38 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (65536, 65536))
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_RESPONSE = b'\r\n'.join(
+WS_DEFAULT_RESPONSE = b'\r\n'.join(
     [
         b'HTTP/1.1 101 @DuTra01',
         b'\r\n',
     ]
 )
 
+HTTP_DEFAULT_RESPONSE = b'\r\n'.join(
+    [
+        b'HTTP/1.1 200s @DuTra01',
+        b'\r\n',
+    ]
+)
+
+
 REMOTES_ADDRESS = {
     'ssh': ('0.0.0.0', 22),
     'openvpn': ('0.0.0.0', 1194),
     'v2ray': ('0.0.0.0', 1080),
 }
+
+
+class ResponseParser:
+    def __init__(self, data: bytes):
+        self.data = data
+
+    def is_websocket(self) -> bool:
+        return b'Upgrade: websocket' in self.data.lower()
+
+    @property
+    def response(self) -> bytes:
+        return WS_DEFAULT_RESPONSE if self.is_websocket() else HTTP_DEFAULT_RESPONSE
 
 
 class ConnectionTypeParser:
@@ -243,7 +261,8 @@ class Proxy(threading.Thread):
             self.client,
             data,
         )
-        self.client.queue(DEFAULT_RESPONSE)
+        parser = ResponseParser(data)
+        self.client.queue(parser.response)
 
     def _get_waitable_lists(self) -> Tuple[List[socket.socket]]:
         r, w, e = [self.client.conn], [], []
