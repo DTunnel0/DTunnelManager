@@ -13,7 +13,7 @@ from abc import abstractproperty
 from typing import List, Tuple, Union, Optional
 
 __author__ = 'Glemison C. Dutra'
-__version__ = '1.0.3'
+__version__ = '1.1.1'
 
 resource.setrlimit(resource.RLIMIT_NOFILE, (65536, 65536))
 
@@ -28,7 +28,7 @@ WS_DEFAULT_RESPONSE = b'\r\n'.join(
 
 HTTP_DEFAULT_RESPONSE = b'\r\n'.join(
     [
-        b'HTTP/1.1 200s @DuTra01',
+        b'HTTP/1.1 200 @DuTra01',
         b'\r\n',
     ]
 )
