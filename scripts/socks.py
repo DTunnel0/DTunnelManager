@@ -46,7 +46,7 @@ class ResponseParser:
         self.data = data
 
     def is_websocket(self) -> bool:
-        return b'Upgrade: websocket' in self.data.lower()
+        return b'upgrade: websocket' in self.data.lower()
 
     @property
     def response(self) -> bytes:
