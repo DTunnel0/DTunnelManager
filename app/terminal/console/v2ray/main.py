@@ -42,7 +42,7 @@ class MainV2rayConsole:
     @property
     def uuids(self) -> t.List[str]:
         if not self._uuids:
-            self._uuids.extend(self.v2ray_manager.get_uuids())
+            self._uuids.extend(self.v2ray_manager.get_clients())
         return self._uuids
 
     @property

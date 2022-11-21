@@ -6,6 +6,8 @@ from app.domain.interfaces.user_gateway import (
     UpdateUserInputGateway,
 )
 
+from .connection import ssh_connection, openvpn_connection, v2ray_connection
+
 
 class SystemUserGateway(UserGatewayInterface):
     def create(self, data: CreateUserInputGateway) -> int:
@@ -44,14 +46,10 @@ class SystemUserGateway(UserGatewayInterface):
         return int(os.popen('id -u {}'.format(username)).read())
 
     def count_connections(self, username: str) -> int:
-        count = self.__ssh_connections(username)
-        count += self.__openvpn_connections(username)
-        return count
-
-    def __ssh_connections(self, username: str) -> int:
-        cmd = 'ps -u {} 2>/dev/null | grep sshd | grep -v grep'.format(username)
-        return len(os.popen(cmd).readlines())
-
-    def __openvpn_connections(self, username: str) -> int:
-        cmd = 'ps -u {} 2>/dev/null | grep openvpn | grep -v grep'.format(username)
-        return len(os.popen(cmd).readlines())
+        return sum(
+            [
+                ssh_connection.count(username),
+                openvpn_connection.count(username),
+                v2ray_connection.count(username),
+            ]
+        )

@@ -2,11 +2,11 @@ import os
 import uuid
 import time
 
-from typing import List
+from typing import List, Union
 from .config import V2RayConfig
 
-V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)\''
-V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --remove \''
+V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)\''  # noqa
+V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --remove \''  # noqa
 V2RAY_BIN_PATH = '/usr/local/bin/v2ray'
 V2RAY_CONFIG_PATH = '/usr/local/etc/v2ray/config.json'
 V2RAY_SERVICE_PATH = '/etc/systemd/system/v2ray.service'
@@ -92,7 +92,7 @@ class V2RayManager:
 
         return self.is_running()
 
-    def create_new_uuid(self) -> str:
+    def create_client(self, email: Union[str, None] = None) -> str:
         config_data = self.config.load()
         uuid = create_uuid()
 
@@ -100,6 +100,7 @@ class V2RayManager:
             {
                 'id': uuid,
                 'flow': 'xtls-rprx-direct',
+                'email': email,
             }
         )
 
@@ -107,7 +108,16 @@ class V2RayManager:
         self.restart()
         return uuid
 
-    def remove_uuid(self, uuid: str) -> None:
+    def edit_client(self, uuid: str, email: Union[str, None]) -> None:
+        config_data = self.config.load()
+        for client in config_data['inbounds'][0]['settings']['clients']:
+            if client['id'] == uuid:
+                client['email'] = email
+
+        self.config.save(config_data)
+        self.restart()
+
+    def delete_client(self, uuid: str) -> None:
         config_data = self.config.load()
         config_data['inbounds'][0]['settings']['clients'] = [
             client
@@ -118,6 +128,6 @@ class V2RayManager:
         self.config.save(config_data)
         self.restart()
 
-    def get_uuids(self) -> List[str]:
+    def get_clients(self) -> List[str]:
         config_data = self.config.load()
         return [client['id'] for client in config_data['inbounds'][0]['settings']['clients']]

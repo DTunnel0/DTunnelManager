@@ -130,7 +130,7 @@ class V2RayChangePortCallback(V2Callback):
             return
 
 
-class AssociateUserCallback(Callback):
+class AssociateUserCallback(V2Callback):
     def __init__(self, update_user_controller: UpdateUserController, uuid: str) -> None:
         self.update_user_controller = update_user_controller
         self.uuid = uuid
@@ -146,6 +146,7 @@ class AssociateUserCallback(Callback):
             }
         )
         user.v2ray_uuid = self.uuid
+        self.v2ray_manager.edit_client(self.uuid, user.username)
         logger.info('Usuário associado com sucesso!')
         Console.pause()
         raise KeyboardInterrupt
@@ -159,7 +160,7 @@ class V2RayCreateUUIDCallback(V2Callback):
     def execute(self) -> None:
         self.pause_screen = False
         v2ray_manager = self.v2ray_manager
-        uuid = v2ray_manager.create_new_uuid()
+        uuid = v2ray_manager.create_client()
         logger.info('UUID criado: %s' % uuid)
         self.uuids.append(uuid)
         self.pause()
@@ -190,7 +191,7 @@ class V2RayRemoveUUIDCallback(V2Callback):
             )
             user.v2ray_uuid = None
         self.uuids.remove(uuid)
-        self.v2ray_manager.remove_uuid(uuid)
+        self.v2ray_manager.delete_client(uuid)
 
     def execute(self, uuid: str, user: UserConsole) -> None:
         self.__remove_uuid(uuid, user)
