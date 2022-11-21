@@ -81,11 +81,11 @@ class V2RayManager:
 
     def get_running_port(self) -> int:
         config_data = self.config.load()
-        return config_data['inbounds'][0]['port']
+        return config_data['inbounds'][-1]['port']
 
     def change_port(self, port: int) -> bool:
         config_data = self.config.load()
-        config_data['inbounds'][0]['port'] = port
+        config_data['inbounds'][-1]['port'] = port
 
         self.config.save(config_data)
         self.restart()
@@ -96,7 +96,7 @@ class V2RayManager:
         config_data = self.config.load()
         uuid = create_uuid()
 
-        config_data['inbounds'][0]['settings']['clients'].append(
+        config_data['inbounds'][-1]['settings']['clients'].append(
             {
                 'id': uuid,
                 'flow': 'xtls-rprx-direct',
@@ -110,7 +110,7 @@ class V2RayManager:
 
     def edit_client(self, uuid: str, email: Union[str, None]) -> None:
         config_data = self.config.load()
-        for client in config_data['inbounds'][0]['settings']['clients']:
+        for client in config_data['inbounds'][-1]['settings']['clients']:
             if client['id'] == uuid:
                 client['email'] = email
 
@@ -119,9 +119,9 @@ class V2RayManager:
 
     def delete_client(self, uuid: str) -> None:
         config_data = self.config.load()
-        config_data['inbounds'][0]['settings']['clients'] = [
+        config_data['inbounds'][-1]['settings']['clients'] = [
             client
-            for client in config_data['inbounds'][0]['settings']['clients']
+            for client in config_data['inbounds'][-1]['settings']['clients']
             if client['id'] != uuid
         ]
 
@@ -130,4 +130,4 @@ class V2RayManager:
 
     def get_clients(self) -> List[str]:
         config_data = self.config.load()
-        return [client['id'] for client in config_data['inbounds'][0]['settings']['clients']]
+        return [client['id'] for client in config_data['inbounds'][-1]['settings']['clients']]
