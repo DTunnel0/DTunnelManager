@@ -271,5 +271,5 @@ class V2RayUUIDListCallback(V2Callback):
         if not self.__should_associate():
             return
 
-        self.console.set_callback(AssociateUserCallback(self.controller, uuid))
+        self.console.set_callback(AssociateUserCallback(self.controller, uuid, self.v2ray_manager))
         self.console.start()
