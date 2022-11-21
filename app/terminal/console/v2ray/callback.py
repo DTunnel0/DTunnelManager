@@ -131,7 +131,8 @@ class V2RayChangePortCallback(V2Callback):
 
 
 class AssociateUserCallback(V2Callback):
-    def __init__(self, update_user_controller: UpdateUserController, uuid: str) -> None:
+    def __init__(self, update_user_controller: UpdateUserController, uuid: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.update_user_controller = update_user_controller
         self.uuid = uuid
 
@@ -207,9 +208,9 @@ class V2RayConfigCallback(V2Callback):
         port = self.v2ray_manager.get_running_port()
 
         config = self.v2ray_manager.config.load()
-        type = config['inbounds'][0]['streamSettings']['network']
-        encryption = config['inbounds'][0]['streamSettings'].get('security')
-        protocol = config['inbounds'][0]['protocol']
+        type = config['inbounds'][-1]['streamSettings']['network']
+        encryption = config['inbounds'][-1]['streamSettings'].get('security')
+        protocol = config['inbounds'][-1]['protocol']
 
         vless_link = vless_base_link.format(
             ip_address,
