@@ -9,6 +9,7 @@ V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/
 V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --remove \''
 V2RAY_BIN_PATH = '/usr/local/bin/v2ray'
 V2RAY_CONFIG_PATH = '/usr/local/etc/v2ray/config.json'
+V2RAY_SERVICE_PATH = '/etc/systemd/system/v2ray.service'
 
 
 def create_uuid() -> str:
@@ -27,15 +28,10 @@ def create_uuid() -> str:
 
 
 def _normalize_service_v2ray() -> None:
-    old = '/usr/bin/v2ray/v2ray -config /etc/v2ray/config.json'
-    new = '/usr/bin/v2ray/v2ray run -c /etc/v2ray/config.json'
-    target = '/etc/systemd/system/v2ray.service'
+    from .template import service_template as service_v2ray_template
 
-    data = open(target).read()
-    data = data.replace(old, new)
-
-    with open(target, 'w') as f:
-        f.write(data)
+    with open(V2RAY_SERVICE_PATH, 'w') as f:
+        f.write(service_v2ray_template)
 
     os.system('systemctl daemon-reload')
 
@@ -48,7 +44,7 @@ class V2RayManager:
         status = os.system(V2RAY_CMD_INSTALL) == 0
 
         if status:
-            # _normalize_service_v2ray()
+            _normalize_service_v2ray()
             self.config.create(port=1080, protocol='vless')
             V2RayManager.restart()
 
