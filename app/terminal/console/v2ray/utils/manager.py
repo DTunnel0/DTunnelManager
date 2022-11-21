@@ -5,8 +5,10 @@ import time
 from typing import List
 from .config import V2RayConfig
 
-V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L -s https://multi.netlify.app/go.sh) -f \''
-V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L -s https://multi.netlify.app/go.sh) --remove \''
+V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)\''
+V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --remove \''
+V2RAY_BIN_PATH = '/usr/local/bin/v2ray'
+V2RAY_CONFIG_PATH = '/usr/local/etc/v2ray/config.json'
 
 
 def create_uuid() -> str:
@@ -40,33 +42,30 @@ def _normalize_service_v2ray() -> None:
 
 class V2RayManager:
     def __init__(self) -> None:
-        self.config = V2RayConfig()
+        self.config = V2RayConfig(V2RAY_CONFIG_PATH)
 
-    @staticmethod
-    def install() -> bool:
-        cmd = V2RAY_CMD_INSTALL
-        status = os.system(cmd) == 0
+    def install(self) -> bool:
+        status = os.system(V2RAY_CMD_INSTALL) == 0
 
         if status:
-            _normalize_service_v2ray()
-            V2RayConfig().create(port=1080, protocol='vless')
+            # _normalize_service_v2ray()
+            self.config.create(port=1080, protocol='vless')
             V2RayManager.restart()
 
         return status
 
-    @staticmethod
-    def uninstall() -> bool:
+    def uninstall(self) -> bool:
         cmd = V2RAY_CMD_UNINSTALL
         status = os.system(cmd) == 0
         return status and not V2RayManager.is_installed()
 
     @staticmethod
     def is_installed() -> bool:
-        return os.path.exists('/usr/bin/v2ray/v2ray')
+        return os.path.exists(V2RAY_BIN_PATH)
 
     @staticmethod
     def is_running() -> bool:
-        cmd = 'ps -ef | grep \'\/usr\/bin\/v2ray\/v2ray\' | grep -v grep'
+        cmd = 'netstat -tunlp | grep v2ray'
         return os.system(cmd) == 0
 
     @staticmethod

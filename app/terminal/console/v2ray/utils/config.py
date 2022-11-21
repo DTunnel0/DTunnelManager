@@ -3,12 +3,10 @@ import os
 
 from .template import config as v2ray_config_template
 
-V2RAY_CONFIG_PATH = '/etc/v2ray/config.json'
-
 
 class V2RayConfig:
-    def __init__(self) -> None:
-        self.config_path = V2RAY_CONFIG_PATH
+    def __init__(self, config_path: str) -> None:
+        self.config_path = config_path
         self.config_data: dict = {}
 
     def load(self) -> dict:
