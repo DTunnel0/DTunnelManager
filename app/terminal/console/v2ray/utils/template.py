@@ -53,14 +53,6 @@ config = json.loads(
             "streamSettings": {
                 "network": "tcp",
                 "security": "none"
-            },
-            "tag": "inbound-1080",
-            "sniffing": {
-                "enabled": true,
-                "destOverride": [
-                    "http",
-                    "tls"
-                ]
             }
         }
     ],
