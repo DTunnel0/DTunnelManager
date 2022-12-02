@@ -7,7 +7,7 @@ from console.colors import color_name
 
 
 class Username:
-    __size = 8
+    __size = 32
     __min_size = 4
 
     def __init__(self, value: t.Optional[str] = None) -> None:
@@ -41,7 +41,7 @@ class Username:
 
 
 class Password:
-    __size = 8
+    __size = 32
     __min_size = 4
 
     def __init__(self, value: t.Optional[str] = None) -> None:
