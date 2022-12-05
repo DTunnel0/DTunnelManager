@@ -59,8 +59,9 @@ class WebsocketParseResponse(ResponseParserAbstract):
     __contains = (b'upgrade: websocket', b'upgrade: ws')
 
     def parse(self, data: bytes) -> bytes:
-        if not any([x in data.lower() for x in self.__contains]):
-            return WS_DEFAULT_RESPONSE
+        for line in data.split(b'\r\n'):
+            if line.lower() in self.__contains:
+                return WS_DEFAULT_RESPONSE
         return super().parse(data)
 
 
