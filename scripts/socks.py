@@ -56,17 +56,17 @@ class ResponseParserAbstract(ResponseParser):
 
 
 class WebsocketParseResponse(ResponseParserAbstract):
+    __contains = (b'upgrade: websocket', b'upgrade: ws')
+
     def parse(self, data: bytes) -> bytes:
-        if b'upgrade: websocket' in data.lower():
+        if not any([x in data.lower() for x in self.__contains]):
             return WS_DEFAULT_RESPONSE
         return super().parse(data)
 
 
 class HttpParseResponse(ResponseParserAbstract):
     def parse(self, data: bytes) -> bytes:
-        if b'upgrade: websocket' not in data.lower():
-            return HTTP_DEFAULT_RESPONSE
-        return super().parse(data)
+        return HTTP_DEFAULT_RESPONSE
 
 
 class ConnectionTypeParser:
