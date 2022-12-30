@@ -36,11 +36,16 @@ class CreateUserUseCase:
                 expiration_date=input.expiration_date.strftime('%Y-%m-%d'),
             )
         )
-        self.__repo.create(
-            User.create(
-                {
-                    'id': user_id,
-                    **input.to_dict(),
-                }
+
+        try:
+            self.__repo.create(
+                User.create(
+                    {
+                        'id': user_id,
+                        **input.to_dict(),
+                    }
+                )
             )
-        )
+        except Exception as e:
+            self.__gateway.delete(input.username)
+            raise e
