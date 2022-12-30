@@ -23,8 +23,8 @@ class Username(str):
 
 class Password(str):
     def __new__(cls, value: str) -> 'Password':
-        if len(value) < 4:
-            raise ValueError('Password must be at least 4 characters long')
+        if len(value) < 3:
+            raise ValueError('Password must be at least 3 characters long')
 
         return super().__new__(cls, value)
 
