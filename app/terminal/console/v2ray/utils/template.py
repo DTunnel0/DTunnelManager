@@ -102,21 +102,3 @@ config = json.loads(
 }
 '''
 )
-
-service_template = '''
-[Unit]
-Description=V2ray Service
-After=network.target nss-lookup.target
-
-[Service]
-Type=simple
-User=root
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
-AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
-NoNewPrivileges=true
-ExecStart=/usr/local/bin/v2ray run -config /usr/local/etc/v2ray/config.json
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-'''

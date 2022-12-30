@@ -28,15 +28,6 @@ def create_uuid() -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, hash_data))
 
 
-def _normalize_service_v2ray() -> None:
-    from .template import service_template as service_v2ray_template
-
-    with open(V2RAY_SERVICE_PATH, 'w') as f:
-        f.write(service_v2ray_template)
-
-    os.system('systemctl daemon-reload')
-
-
 class V2RayManager:
     def __init__(self) -> None:
         self.config = V2RayConfig(V2RAY_CONFIG_PATH)
@@ -47,7 +38,6 @@ class V2RayManager:
             os.remove(V2RAY_CONFIG_PATH)
 
         if status:
-            _normalize_service_v2ray()
             self.config.create(port=1080, protocol='vless')
             V2RayManager.restart()
 
