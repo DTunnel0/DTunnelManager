@@ -147,7 +147,7 @@ class AssociateUserCallback(V2Callback):
         self.uuid = uuid
 
     def execute(self, *args, **kwargs) -> None:
-        user: UserConsole = kwargs['user']
+        user: UserConsole = args[0]
         self.update_user.execute(
             UserUpdateInputDTO(
                 id=user.id,
