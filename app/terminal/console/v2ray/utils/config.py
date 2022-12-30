@@ -23,6 +23,6 @@ class V2RayConfig:
             json.dump(config_data, f, indent=4)
 
     def create(self, port: int, protocol: str) -> None:
-        v2ray_config_template['inbounds'][0]['port'] = port
-        v2ray_config_template['inbounds'][0]['protocol'] = protocol
+        v2ray_config_template['inbounds'][-1]['port'] = port
+        v2ray_config_template['inbounds'][-1]['protocol'] = protocol
         self.save(v2ray_config_template)
