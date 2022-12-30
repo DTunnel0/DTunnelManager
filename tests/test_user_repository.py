@@ -6,12 +6,12 @@ from app.data.repositories.user import UserRepository
 from app.domain.entities.user import User
 
 
-@pytest.mark.skip(reason='Not implemented')
-def test_deve_criar_usuario_e_salvar_no_banco_de_dados():
+def test_deve_criar_um_usuario():
+    user_id = 10001
     user_repository = UserRepository()
     user_repository.create(
         User(
-            id=1000,
+            id=user_id,
             username='test',
             password='test',
             v2ray_uuid=str(uuid.uuid4()),
@@ -20,16 +20,18 @@ def test_deve_criar_usuario_e_salvar_no_banco_de_dados():
         )
     )
 
-    user = user_repository.get_by_id(1000)
+    user = user_repository.get_by_id(user_id)
     assert user.username == 'test'
 
+    user_repository.delete(user_id)
 
-@pytest.mark.skip(reason='Not implemented')
-def test_deve_atualizar_usuario_e_salvar_no_banco_de_dados():
+
+def test_deve_atualizar_um_usuario():
+    user_id = 10001
     user_repository = UserRepository()
     user_repository.create(
         User(
-            id=1000,
+            id=user_id,
             username='test',
             password='test',
             v2ray_uuid=str(uuid.uuid4()),
@@ -38,19 +40,22 @@ def test_deve_atualizar_usuario_e_salvar_no_banco_de_dados():
         )
     )
 
-    user = user_repository.get_by_id(1000)
+    user = user_repository.get_by_id(user_id)
     user.username = 'test2'
     user_repository.update(user)
 
-    user = user_repository.get_by_id(1000)
+    user = user_repository.get_by_id(user_id)
     assert user.username == 'test2'
 
+    user_repository.delete(user_id)
 
-def test_deve_deletar_usuario_e_salvar_no_banco_de_dados():
+
+def test_deve_deletar_um_usuario():
+    user_id = 10001
     user_repository = UserRepository()
     user_repository.create(
         User(
-            id=1000,
+            id=user_id,
             username='test',
             password='test',
             v2ray_uuid=str(uuid.uuid4()),
@@ -59,6 +64,6 @@ def test_deve_deletar_usuario_e_salvar_no_banco_de_dados():
         )
     )
 
-    user_repository.delete(1000)
+    user_repository.delete(user_id)
     with pytest.raises(Exception):
-        user_repository.get_by_id(1000)
+        user_repository.get_by_id(user_id)
