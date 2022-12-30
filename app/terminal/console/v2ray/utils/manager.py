@@ -7,6 +7,7 @@ from .config import V2RayConfig
 
 V2RAY_CMD_INSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)\''  # noqa
 V2RAY_CMD_UNINSTALL = 'bash -c \'bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh) --remove \''  # noqa
+
 V2RAY_BIN_PATH = '/usr/local/bin/v2ray'
 V2RAY_CONFIG_PATH = '/usr/local/etc/v2ray/config.json'
 V2RAY_SERVICE_PATH = '/etc/systemd/system/v2ray.service'
@@ -42,6 +43,8 @@ class V2RayManager:
 
     def install(self) -> bool:
         status = os.system(V2RAY_CMD_INSTALL) == 0
+        if os.path.exists(V2RAY_CONFIG_PATH):
+            os.remove(V2RAY_CONFIG_PATH)
 
         if status:
             _normalize_service_v2ray()

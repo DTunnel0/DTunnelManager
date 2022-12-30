@@ -202,10 +202,9 @@ class V2RayRemoveUUIDCallback(V2Callback):
         self.uuids.remove(uuid)
         self.v2ray_manager.delete_client(uuid)
 
-    # def execute(self, uuid: str, user: UserConsole) -> None:
     def execute(self, *args, **kwargs) -> None:
-        uuid: str = kwargs['uuid']
-        user: UserConsole = kwargs['user']
+        uuid: str = args[0]
+        user: UserConsole = args[1]
 
         self.__remove_uuid(uuid, user)
         logger.info('UUID removido com sucesso!')
@@ -276,9 +275,8 @@ class V2RayUUIDListCallback(V2Callback):
             logger.error('Opção inválida!')
 
     def execute(self, *args, **kwargs) -> None:
-        uuid: str = kwargs['uuid']
-        user: t.Union[UserConsole, None] = kwargs.get('user')
-
+        uuid: str = args[0]
+        user: t.Union[UserConsole, None] = args[1]
         if user is not None:
             return
 
