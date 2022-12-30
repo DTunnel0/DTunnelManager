@@ -29,12 +29,18 @@ class CreateUserUseCase:
         self.__gateway = gateway
 
     def execute(self, input: UserInputDTO) -> None:
-        user = User.create(input.to_dict())
-        user.id = self.__gateway.create(
+        user_id = self.__gateway.create(
             CreateUserInputGateway(
-                username=user.username,
-                password=user.password,
-                expiration_date=user.expiration_date.strftime('%Y-%m-%d'),
+                username=input.username,
+                password=input.password,
+                expiration_date=input.expiration_date.strftime('%Y-%m-%d'),
             )
         )
-        self.__repo.create(user)
+        self.__repo.create(
+            User.create(
+                {
+                    'id': user_id,
+                    **input.to_dict(),
+                }
+            )
+        )

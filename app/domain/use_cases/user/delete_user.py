@@ -11,3 +11,14 @@ class DeleteUserUseCase:
         user = self.__repo.get_by_id(id)
         self.__gateway.delete(user.username)
         self.__repo.delete(id)
+
+
+class DeleteUserByUsernameUseCase:
+    def __init__(self, repo: UserRepositoryInterface, gateway: UserGatewayInterface) -> None:
+        self.__repo = repo
+        self.__gateway = gateway
+
+    def execute(self, username: str) -> None:
+        user = self.__repo.get_by_username(username)
+        self.__gateway.delete(username)
+        self.__repo.delete(user.id)

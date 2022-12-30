@@ -2,12 +2,10 @@ import json
 import os
 import re
 import typing as t
+import datetime
 
-from app.data.repositories import UserRepository
-from app.infra.controllers.user.create import CreateUserController
+from app.domain.use_cases.user.create_user import CreateUserUseCase, UserInputDTO
 
-# from app.domain.dtos import UserDto
-# from app.domain.use_cases import UserUseCase
 from app.utilities.logger import logger
 from app.version import __version__
 
@@ -15,7 +13,7 @@ from console import Console, FuncItem
 from console.colors import color_name
 
 
-class GLUpdate:
+class DTUpdate:
     def __init__(self):
         self.repository_url = 'https://github.com/DTunnel0/DTunnelManager.git'
         self.version_url = (
@@ -60,13 +58,13 @@ class GLUpdate:
 
 
 def check_update() -> None:
-    gl_update = GLUpdate()
-    if gl_update.check_update():
+    dt_update = DTUpdate()
+    if dt_update.check_update():
 
         result = input(color_name.YELLOW + 'Deseja atualizar? (S/N) ' + color_name.RESET)
 
         if result.upper() == 'S':
-            gl_update.update()
+            dt_update.update()
 
     Console.pause()
 
@@ -90,9 +88,9 @@ class Backup:
 
 
 class RestoreBackup:
-    def __init__(self, backup: Backup, controller: CreateUserController) -> None:
+    def __init__(self, backup: Backup, create_user: CreateUserUseCase) -> None:
         self._backup = backup
-        self._controller = controller
+        self.create_user = create_user
 
     @property
     def backup(self) -> Backup:
@@ -119,9 +117,9 @@ class SSHPlusBackup(Backup):
         super().__init__('backup.vps', '/root/')
 
 
-class GLBackup(Backup):
+class DTBackup(Backup):
     def __init__(self):
-        super().__init__('glbackup.tar.gz', '/root/')
+        super().__init__('dtbackup.tar.gz', '/root/')
 
 
 class SSHPlusRestoreBackup(RestoreBackup):
@@ -146,8 +144,19 @@ class SSHPlusRestoreBackup(RestoreBackup):
     def get_expiration_date(self, username: str) -> str:
         command = 'chage -l {} | grep "Account expires"'
         data = os.popen(command.format(username)).read()
-        expiration_date = data.strip().split(':')[-1].strip()
+        expiration_date = data.strip().split(':')[-1].strip()  # FOMRAT: Apr 06, 2023 | never
         return expiration_date
+
+    def format_expiration_date(
+        self,
+        expiration_date: str,
+        default: datetime.datetime,
+    ) -> datetime.datetime:
+        if expiration_date == 'never':
+            return default
+
+        date = datetime.datetime.strptime(expiration_date, '%b %d, %Y')
+        return date
 
     def get_v2ray_uuid(self, username: str) -> t.Optional[str]:
         path = '/etc/v2ray/config.json'
@@ -176,29 +185,18 @@ class SSHPlusRestoreBackup(RestoreBackup):
             expiration_date = self.get_expiration_date(username)
             v2ray_uuid = self.get_v2ray_uuid(username)
 
-            # user_dto = UserDto()
-            # user_dto.username = username
-            # user_dto.password = password
-            # user_dto.connection_limit = limit
-
-            # if expiration_date and expiration_date != 'never':
-            #     user_dto.expiration_date = expiration_date
-
-            # if v2ray_uuid:
-            #     user_dto.v2ray_uuid = v2ray_uuid
-
             try:
-                # repository = UserRepository()
-                # use_case = UserUseCase(repository)
-                # use_case.create(user_dto)
-                self._controller.handle(
-                    {
-                        'username': username,
-                        'password': password,
-                        'limit': limit,
-                        'expiration_date': expiration_date,
-                        'v2ray_uuid': v2ray_uuid,
-                    }
+                self.create_user.execute(
+                    UserInputDTO(
+                        username=username,
+                        password=password,
+                        connection_limit=limit,
+                        expiration_date=self.format_expiration_date(
+                            expiration_date,
+                            datetime.datetime.now(),
+                        ),
+                        v2ray_uuid=v2ray_uuid,
+                    )
                 )
             except Exception as e:
                 logger.error(e)
@@ -237,26 +235,26 @@ def restore_backup(backup: RestoreBackup) -> None:
     Console.pause()
 
 
-def choice_restore_backup(controller: CreateUserController) -> None:
+def choice_restore_backup(create_user: CreateUserUseCase) -> None:
     console = Console('RESTAURAR BACKUP')
     console.append_item(
         FuncItem(
             'SSHPLUS',
-            lambda: restore_backup(SSHPlusRestoreBackup(SSHPlusBackup(), controller)),
+            lambda: restore_backup(SSHPlusRestoreBackup(SSHPlusBackup(), create_user)),
         )
     )
     console.append_item(
         FuncItem(
             'GLBACKUP',
-            lambda: restore_backup(GLBackupRestoreBackup(GLBackup(), controller)),
+            lambda: restore_backup(GLBackupRestoreBackup(DTBackup(), create_user)),
         )
     )
     console.show()
 
 
 class MainToolsConsole:
-    def __init__(self, create_user_controller: CreateUserController) -> None:
-        self._create_user_controller = create_user_controller
+    def __init__(self, create_user: CreateUserUseCase) -> None:
+        self.create_user = create_user
         self.console = Console('GERENCIADOR DE FERRAMENTAS')
 
     def run(self) -> None:
@@ -266,7 +264,7 @@ class MainToolsConsole:
             FuncItem(
                 'RESTAURAR BACKUP',
                 choice_restore_backup,
-                self._create_user_controller,
+                self.create_user,
             )
         )
         self.console.show()

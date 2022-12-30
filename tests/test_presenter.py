@@ -1,4 +1,4 @@
-from app.infra.presenters.console import UserConsoleModel, CreateUserConsolePresenter
+from app.terminal.presenters.console import CreateUserConsolePresenter, UserConsoleModel
 
 
 def test_console_presenter():

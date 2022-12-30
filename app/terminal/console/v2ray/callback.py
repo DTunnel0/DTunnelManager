@@ -1,6 +1,7 @@
 import typing as t
 
-from ....infra.controllers.user.update import UpdateUserController
+from app.domain.use_cases.user.update_user import UpdateUserUseCase, UserUpdateInputDTO
+
 from ..common import Callback
 from ..user.console import UserConsole, UserMenuConsole
 from .utils.manager import V2RayManager
@@ -32,7 +33,8 @@ class V2Callback(Callback):
 
 
 class V2RayInstallCallback(V2Callback):
-    def execute(self, action: t.Callable) -> None:
+    def execute(self, *args, **kwargs) -> None:
+        action: t.Callable = args[0]
         logger.info('Instalando V2Ray...')
         status = self.v2ray_manager.install()
 
@@ -46,7 +48,9 @@ class V2RayInstallCallback(V2Callback):
 
 
 class V2RayUninstallCallback(V2Callback):
-    def execute(self, action: t.Callable) -> None:
+    def execute(self, *args, **kwargs) -> None:
+        action: t.Callable = args[0]
+
         logger.info('Desinstalando V2Ray...')
         status = self.v2ray_manager.uninstall()
 
@@ -59,7 +63,8 @@ class V2RayUninstallCallback(V2Callback):
 
 
 class V2RayStartCallback(V2Callback):
-    def execute(self, action: t.Callable) -> None:
+    def execute(self, *args, **kwargs) -> None:
+        action: t.Callable = args[0]
         logger.info('Iniciando V2Ray...')
         status = self.v2ray_manager.start()
 
@@ -72,7 +77,8 @@ class V2RayStartCallback(V2Callback):
 
 
 class V2RayStopCallback(V2Callback):
-    def execute(self, action: t.Callable) -> None:
+    def execute(self, *args, **kwargs) -> None:
+        action: t.Callable = args[0]
         logger.info('Parando V2Ray...')
         status = self.v2ray_manager.stop()
 
@@ -85,7 +91,8 @@ class V2RayStopCallback(V2Callback):
 
 
 class V2RayRestartCallback(V2Callback):
-    def execute(self, action: t.Callable) -> None:
+    def execute(self, *args, **kwargs) -> None:
+        action: t.Callable = args[0]
         logger.info('Reiniciando V2Ray...')
         status = self.v2ray_manager.restart()
 
@@ -98,7 +105,7 @@ class V2RayRestartCallback(V2Callback):
 
 
 class V2RayChangePortCallback(V2Callback):
-    def execute(self) -> None:
+    def execute(self, *args, **kwargs) -> None:
         v2ray_manager = self.v2ray_manager
 
         current_port = v2ray_manager.get_running_port()
@@ -131,20 +138,21 @@ class V2RayChangePortCallback(V2Callback):
 
 
 class AssociateUserCallback(V2Callback):
-    def __init__(self, update_user_controller: UpdateUserController, uuid: str, *args, **kwargs):
+    def __init__(self, update_user: UpdateUserUseCase, uuid: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.update_user_controller = update_user_controller
+        self.update_user = update_user
         self.uuid = uuid
 
     def set_uuid(self, uuid: str) -> None:
         self.uuid = uuid
 
-    def execute(self, user: UserConsole) -> None:
-        self.update_user_controller.handle(
-            {
-                'id': user.id,
-                'v2ray_uuid': self.uuid,
-            }
+    def execute(self, *args, **kwargs) -> None:
+        user: UserConsole = kwargs['user']
+        self.update_user.execute(
+            UserUpdateInputDTO(
+                id=user.id,
+                v2ray_uuid=self.uuid,
+            )
         )
         user.v2ray_uuid = self.uuid
         self.v2ray_manager.edit_client(self.uuid, user.username)
@@ -158,7 +166,7 @@ class V2RayCreateUUIDCallback(V2Callback):
         super().__init__(*args, **kwargs)
         self.uuids = uuids
 
-    def execute(self) -> None:
+    def execute(self, *args, **kwargs) -> None:
         self.pause_screen = False
         v2ray_manager = self.v2ray_manager
         uuid = v2ray_manager.create_client()
@@ -172,7 +180,7 @@ class V2RayRemoveUUIDCallback(V2Callback):
         self,
         uuids: t.List[str],
         users: t.List[UserConsole],
-        conetroller: UpdateUserController,
+        update_user: UpdateUserUseCase,
         v2ray_manager: V2RayManager,
         pause_screen: bool = True,
         clear_screen: bool = True,
@@ -180,28 +188,32 @@ class V2RayRemoveUUIDCallback(V2Callback):
         super().__init__(v2ray_manager, pause_screen, clear_screen)
         self.uuids = uuids
         self.users = users
-        self.conetroller = conetroller
+        self.update_user = update_user
 
     def __remove_uuid(self, uuid: str, user: UserConsole) -> None:
         if user is not None:
-            self.conetroller.handle(
-                {
-                    'id': user.id,
-                    'v2ray_uuid': '',
-                }
+            self.update_user.execute(
+                UserUpdateInputDTO(
+                    id=user.id,
+                    v2ray_uuid='',
+                )
             )
             user.v2ray_uuid = None
         self.uuids.remove(uuid)
         self.v2ray_manager.delete_client(uuid)
 
-    def execute(self, uuid: str, user: UserConsole) -> None:
+    # def execute(self, uuid: str, user: UserConsole) -> None:
+    def execute(self, *args, **kwargs) -> None:
+        uuid: str = kwargs['uuid']
+        user: UserConsole = kwargs['user']
+
         self.__remove_uuid(uuid, user)
         logger.info('UUID removido com sucesso!')
         self.pause()
 
 
 class V2RayConfigCallback(V2Callback):
-    def execute(self) -> None:
+    def execute(self, *args, **kwargs) -> None:
         vless_base_link = 'vless://@{}:{}?encryption={}&type={}#{}'
 
         ip_address = get_ip_address()
@@ -239,14 +251,14 @@ class V2RayUUIDListCallback(V2Callback):
     def __init__(
         self,
         console: UserMenuConsole,
-        controller: UpdateUserController,
+        update_user: UpdateUserUseCase,
         v2ray_manager: V2RayManager,
         pause_screen: bool = True,
         clear_screen: bool = True,
     ):
         super().__init__(v2ray_manager, pause_screen, clear_screen)
         self.console = console
-        self.controller = controller
+        self.update_user = update_user
 
     def __input(self) -> str:
         text = color_name.YELLOW + 'Deseja associar um usuário? (s/n): ' + color_name.RESET
@@ -263,7 +275,10 @@ class V2RayUUIDListCallback(V2Callback):
 
             logger.error('Opção inválida!')
 
-    def execute(self, uuid: str, user: t.Union[UserConsole, None] = None) -> None:
+    def execute(self, *args, **kwargs) -> None:
+        uuid: str = kwargs['uuid']
+        user: t.Union[UserConsole, None] = kwargs.get('user')
+
         if user is not None:
             return
 
@@ -271,5 +286,5 @@ class V2RayUUIDListCallback(V2Callback):
         if not self.__should_associate():
             return
 
-        self.console.set_callback(AssociateUserCallback(self.controller, uuid, self.v2ray_manager))
+        self.console.set_callback(AssociateUserCallback(self.update_user, uuid, self.v2ray_manager))
         self.console.start()

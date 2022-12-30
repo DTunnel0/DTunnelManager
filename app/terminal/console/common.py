@@ -5,6 +5,8 @@ from app.utilities.logger import logger
 from console.colors import color_name
 from console.console import Console
 
+from typing import Generic, TypeVar
+
 
 class Callback(metaclass=ABCMeta):
     @abstractmethod

@@ -38,7 +38,7 @@ class ConnectionLimit(int):
 
 
 class User:
-    id: Union[None, int]
+    id: int
     username: Username
     password: Password
     v2ray_uuid: Union[UUID, None]
@@ -47,12 +47,12 @@ class User:
 
     def __init__(
         self,
+        id: int,
         username: Username,
         password: Password,
         v2ray_uuid: Union[UUID, None],
         connection_limit: ConnectionLimit,
         expiration_date: datetime.datetime,
-        id: Union[None, int] = None,
     ):
         self.username = username
         self.password = password
@@ -64,7 +64,7 @@ class User:
     @staticmethod
     def create(data: dict) -> 'User':
         return User(
-            id=data.get('id'),
+            id=data['id'],
             username=Username(data['username']),
             password=Password(data['password']),
             connection_limit=ConnectionLimit(data['connection_limit']),

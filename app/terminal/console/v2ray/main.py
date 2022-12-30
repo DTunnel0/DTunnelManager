@@ -1,8 +1,10 @@
 import typing as t
 
-from app.infra.controllers.user.get_all import GetAllUsersController
-from app.infra.controllers.user.get_user import GetUserByUUIDController
-from app.infra.controllers.user.update import UpdateUserController
+from app.domain.use_cases.user.get_user import GetAllUsersUseCase
+from app.domain.use_cases.user.get_user import GetUserByUUIDUseCase
+from app.domain.use_cases.user.update_user import UpdateUserUseCase
+from app.domain.use_cases.user.delete_user import DeleteUserUseCase
+
 from app.terminal.console.user.console import UserConsole, UserMenuConsole
 from app.terminal.console.v2ray.console import ConsoleDeleteUUID, ConsoleListUUID
 from console.console import Console, FuncItem
@@ -25,13 +27,13 @@ from .utils.manager import V2RayManager
 class MainV2rayConsole:
     def __init__(
         self,
-        get_all_users_controller: GetAllUsersController,
-        get_user_by_uuid_controller: GetUserByUUIDController,
-        update_user_controller: UpdateUserController,
+        get_all_users: GetAllUsersUseCase,
+        get_user_by_uuid: GetUserByUUIDUseCase,
+        update_user: UpdateUserUseCase,
     ) -> None:
-        self.get_all_users_controller = get_all_users_controller
-        self.get_user_by_uuid_controller = get_user_by_uuid_controller
-        self.update_user_controller = update_user_controller
+        self.get_all_users = get_all_users
+        self.get_user_by_uuid = get_user_by_uuid
+        self.update_user = update_user
 
         self.console = Console('V2Ray Manager')
         self.v2ray_manager = V2RayManager()
@@ -49,7 +51,7 @@ class MainV2rayConsole:
     def users(self) -> t.List[UserConsole]:
         if not self._users:
             self._users = UserConsole.collection(
-                [u.to_dict() for u in self.get_all_users_controller.handle()],
+                [u.to_dict() for u in self.get_all_users.execute()],
             )
         return self._users
 
@@ -123,7 +125,7 @@ class MainV2rayConsole:
                     V2RayRemoveUUIDCallback(
                         self.uuids,
                         self.users,
-                        self.update_user_controller,
+                        self.update_user,
                         self.v2ray_manager,
                     ),
                 ).start(),
@@ -137,7 +139,7 @@ class MainV2rayConsole:
                     self.users,
                     V2RayUUIDListCallback(
                         UserMenuConsole(self.users),
-                        self.update_user_controller,
+                        self.update_user,
                         self.v2ray_manager,
                     ),
                 ).start(),

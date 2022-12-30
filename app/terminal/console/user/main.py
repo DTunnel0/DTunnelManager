@@ -1,11 +1,16 @@
 import typing as t
 
-from app.infra.controllers.user.count_connection import CountUserConnectionController
-from app.infra.controllers.user.create import CreateUserController
-from app.infra.controllers.user.delete import DeleteUserController
-from app.infra.controllers.user.get_all import GetAllUsersController
-from app.infra.controllers.user.get_user import GetUserByUsernameController
-from app.infra.controllers.user.update import UpdateUserController
+
+from app.domain.use_cases.user.count_connections import CountUserConnection
+from app.domain.use_cases.user.create_user import CreateUserUseCase
+from app.domain.use_cases.user.delete_user import DeleteUserUseCase
+from app.domain.use_cases.user.get_user import (
+    GetAllUsersUseCase,
+    GetUserByUsernameUseCase,
+    GetUserByUUIDUseCase,
+)
+from app.domain.use_cases.user.update_user import UpdateUserUseCase
+
 from app.terminal.console.user.callback import (
     ConnectionLimitChangeCallback,
     CreateUserCallback,
@@ -28,19 +33,19 @@ from console.console import Console, FuncItem
 class MainUserConsole:
     def __init__(
         self,
-        create_user_controller: CreateUserController,
-        get_all_users_controller: GetAllUsersController,
-        delete_user_controller: DeleteUserController,
-        update_user_controller: UpdateUserController,
-        get_user_by_username_controller: GetUserByUsernameController,
-        count_user_connection_controller: CountUserConnectionController,
+        create_user: CreateUserUseCase,
+        get_all_users: GetAllUsersUseCase,
+        delete_user: DeleteUserUseCase,
+        update_user: UpdateUserUseCase,
+        get_user_by_username: GetUserByUsernameUseCase,
+        count_user_connection: CountUserConnection,
     ):
-        self._create_user_controller = create_user_controller
-        self._get_all_users_controller = get_all_users_controller
-        self._delete_user_controller = delete_user_controller
-        self._update_user_controller = update_user_controller
-        self._get_user_by_username_controller = get_user_by_username_controller
-        self._count_user_connection_controller = count_user_connection_controller
+        self._create_user = create_user
+        self._get_all_users = get_all_users
+        self._delete_user = delete_user
+        self._update_user = update_user
+        self._get_user_by_username = get_user_by_username
+        self._count_user_connection = count_user_connection
 
         self._users: t.List[UserConsole] = []
 
@@ -50,10 +55,7 @@ class MainUserConsole:
     def users(self) -> t.List[UserConsole]:
         if not self._users:
             self._users.extend(
-                [
-                    UserConsole.create(user.to_dict())
-                    for user in self._get_all_users_controller.handle()
-                ]
+                [UserConsole.create(user.to_dict()) for user in self._get_all_users.execute()]
             )
         return self._users
 
@@ -62,8 +64,8 @@ class MainUserConsole:
             FuncItem(
                 'CRIAR USUÁRIO',
                 lambda: CreateUserCallback(
-                    self._create_user_controller,
-                    self._get_user_by_username_controller,
+                    self._create_user,
+                    self._get_user_by_username,
                     self.users,
                     UserInputData(),
                 )(),
@@ -73,8 +75,8 @@ class MainUserConsole:
             FuncItem(
                 'GERAR USUÁRIO',
                 lambda: CreateUserCallback(
-                    self._create_user_controller,
-                    self._get_user_by_username_controller,
+                    self._create_user,
+                    self._get_user_by_username,
                     self.users,
                     RandomUserInputData(),
                 )(),
@@ -86,7 +88,7 @@ class MainUserConsole:
                 UserMenuConsoleDeleteUser(
                     users=self.users,
                     on_select=DeleteUserCallback(
-                        self._delete_user_controller,
+                        self._delete_user,
                         self.users,
                     ),
                 ).start,
@@ -99,7 +101,7 @@ class MainUserConsole:
                 UserMenuConsolePassword(
                     users=self.users,
                     on_select=PasswordChangeCallback(
-                        self._update_user_controller,
+                        self._update_user,
                         self.users,
                     ),
                 ).start,
@@ -112,7 +114,7 @@ class MainUserConsole:
                 UserMenuConsoleConnectionLimit(
                     users=self.users,
                     on_select=ConnectionLimitChangeCallback(
-                        self._update_user_controller,
+                        self._update_user,
                         self.users,
                     ),
                 ).start,
@@ -125,7 +127,7 @@ class MainUserConsole:
                 UserMenuConsoleExpirationDate(
                     users=self.users,
                     on_select=ExpirationDateChangeCallback(
-                        self._update_user_controller,
+                        self._update_user,
                         self.users,
                     ),
                 ).start,
@@ -136,7 +138,7 @@ class MainUserConsole:
             FuncItem(
                 'MONITORAMENTO',
                 MonitorCallback(
-                    self._count_user_connection_controller,
+                    self._count_user_connection,
                     self.users,
                 ),
             )

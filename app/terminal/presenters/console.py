@@ -1,10 +1,5 @@
-# flake8: noqa
-
 from typing import NamedTuple, Union
-
 from console.colors import bg_color_name, color_name
-
-from ..interfaces.presenter import Presenter
 
 
 class UserConsoleModel(NamedTuple):
@@ -15,16 +10,19 @@ class UserConsoleModel(NamedTuple):
     v2ray_uuid: Union[None, str]
 
 
-class CreateUserConsolePresenter(Presenter):
-    def present(self, model: UserConsoleModel) -> str:
-        return self.__build_message(model)
+class CreateUserConsolePresenter:
+    @staticmethod
+    def present(model: UserConsoleModel) -> str:
+        return CreateUserConsolePresenter.__build_message(model)
 
-    def __build_message(self, model: UserConsoleModel) -> str:
-        title = self.__build_title()
-        message = self.__build_user_message(model)
+    @staticmethod
+    def __build_message(model: UserConsoleModel) -> str:
+        title = CreateUserConsolePresenter.__build_title()
+        message = CreateUserConsolePresenter.__build_user_message(model)
         return title + message
 
-    def __build_title(self) -> str:
+    @staticmethod
+    def __build_title() -> str:
         title = '✅USUARIO CRIADO COM SUCESSO✅'
         text_size = len(title) + 2
         line_size = (50 - text_size) // 2
@@ -47,7 +45,8 @@ class CreateUserConsolePresenter(Presenter):
             + '\n'
         )
 
-    def __build_user_message(self, model: UserConsoleModel) -> str:
+    @staticmethod
+    def __build_user_message(model: UserConsoleModel) -> str:
         message = (
             color_name.WHITE
             + '👤Nome do usuario: '

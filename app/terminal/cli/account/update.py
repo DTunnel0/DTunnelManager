@@ -1,18 +1,20 @@
-from datetime import datetime, timedelta
-
 from argparse import ArgumentParser
+from datetime import datetime, timedelta
 from typing import Any
 
-from app.domain.use_cases.user.create_user import CreateUserUseCase, UserInputDTO
+from app.domain.use_cases.user.update_user import UpdateUserUseCase, UserUpdateInputDTO
+from app.domain.use_cases.user.get_user import GetUserByUsernameUseCase
 
 
-class AccountCreate:
+class UpdateUser:
     def __init__(
         self,
-        create_account: CreateUserUseCase,
+        update_user: UpdateUserUseCase,
+        get_user: GetUserByUsernameUseCase,
         parser: ArgumentParser,
     ) -> None:
-        self.create_account = create_account
+        self.update_user = update_user
+        self.get_user = get_user
         self.parser = parser
         self.parser.add_argument(
             '-u',
@@ -26,7 +28,6 @@ class AccountCreate:
             '--password',
             help='Password',
             type=str,
-            required=True,
         )
         self.parser.add_argument(
             '-l',
@@ -53,16 +54,18 @@ class AccountCreate:
 
     def run(self, args: Any) -> None:
         try:
+            user = self.get_user.execute(username=args.username)
             expiration_date = self.__parse_expiration_date(args.expiration_date)
-            self.create_account.execute(
-                UserInputDTO(
+            self.update_user.execute(
+                UserUpdateInputDTO(
+                    id=user.id,
                     username=args.username,
                     password=args.password,
                     connection_limit=args.limit_connections,
                     expiration_date=expiration_date,
                 )
             )
-            print('Account created successfully')
+            print('User updated')
         except Exception as e:
             print('Error: {error}'.format(error=e))
             exit(1)

@@ -127,9 +127,9 @@ def main():
         stop_bot()
 
 
-from app.__main__ import get_all_users_controller
+from app.__main__ import get_all_users_use_case
 
-handler = ListUsersHandler(get_all_users_controller, bot)
+handler = ListUsersHandler(get_all_users_use_case, bot)
 bot.polling()
 
 if __name__ == '__main__':
