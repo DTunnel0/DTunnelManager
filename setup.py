@@ -8,7 +8,6 @@ REQUIREMENTS = [
     'sqlalchemy',
     'distro',
     'pytelegrambotapi==4.6.0',
-    'python-daemon',
 ]
 VERSION = __version__
 
